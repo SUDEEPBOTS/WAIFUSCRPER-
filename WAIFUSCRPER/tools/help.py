@@ -217,7 +217,7 @@ def _build(section: str) -> tuple[str, InlineKeyboardMarkup]:
 #  /help COMMAND
 # ══════════════════════════════════════════════════════════════════════════════
 
-@app.on_message(filters.command("help") & (filters.private | filters.group))
+@app.on_message(filters.command("help") & (filters.private | filters.group), group=0)
 async def help_cmd(client: Client, message: Message):
     text, markup = _build("main")
     await message.reply_text(text, reply_markup=markup, parse_mode="html")
@@ -228,14 +228,14 @@ async def help_cmd(client: Client, message: Message):
 #  CALLBACKS
 # ══════════════════════════════════════════════════════════════════════════════
 
-@app.on_callback_query(filters.regex("^menu_help$"))
+@app.on_callback_query(filters.regex("^menu_help$"), group=0)
 async def cb_menu_help(client: Client, cq: CallbackQuery):
     await cq.answer()
     text, markup = _build("main")
     await cq.message.edit_text(text, reply_markup=markup, parse_mode="html")
 
 
-@app.on_callback_query(filters.regex("^help_(.+)$"))
+@app.on_callback_query(filters.regex("^help_(.+)$"), group=0)
 async def cb_help_section(client: Client, cq: CallbackQuery):
     section = cq.matches[0].group(1)   # e.g. "basic", "admin", "config" …
 
@@ -249,4 +249,4 @@ async def cb_help_section(client: Client, cq: CallbackQuery):
         await cq.message.edit_text(text, reply_markup=markup, parse_mode="html")
     except Exception:
         pass   # Message same hone pe Telegram error deta hai — ignore
-      
+
