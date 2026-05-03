@@ -116,18 +116,17 @@ async def _ask_approve(logger_id: int, userbot_msg, parsed: dict) -> bool:
         f"👤 <b>Added by:</b>  {parsed.get('added_by', 'Unknown')}\n"
     )
 
-    # Logger pe photo bhejo
+    # Logger pe photo bhejo — pehle bina keyboard ke
     sent = await app.send_photo(
         chat_id=logger_id,
         photo=userbot_msg.photo.file_id,
         caption=caption,
-        reply_markup=_approve_keyboard(str(sent_id := 0)),   # placeholder
         parse_mode="html",
     )
     # Ab actual message ID se key banao
     key = str(sent.id)
 
-    # Keyboard dobara set karo sahi key ke saath
+    # Keyboard sahi key ke saath edit karo
     await sent.edit_reply_markup(_approve_keyboard(key))
 
     # Event banao aur wait karo
@@ -528,4 +527,5 @@ async def cmd_wstop(client: Client, message: Message):
         parse_mode="html",
     )
     log.info(f"/wstop by user {user_id}")
-      
+
+  
