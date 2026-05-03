@@ -69,7 +69,6 @@ async def get_next_waifu_id() -> int:
     Starts from 1 if DB is empty.
     """
     col = await get_collection()
-    # Sort by numeric value of waifu_id descending, get the top one
     cursor = col.find(
         {"waifu_id": {"$regex": r"^\d+$"}},
         {"waifu_id": 1}
@@ -122,6 +121,27 @@ async def drop_collection() -> bool:
     except Exception as e:
         logger.error(f"Drop collection error: {e}")
         return False
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  REJECTED WAIFU FUNCTIONS
+# ══════════════════════════════════════════════════════════════════════════════
+
+async def add_rejected_waifu(waifu_id: str) -> None:
+    """rejected waifu ka id save karo taaki dubara na aaye."""
+    col = _db()["rejected_waifus"]
+    await col.update_one(
+        {"waifu_id": str(waifu_id)},
+        {"$set": {"waifu_id": str(waifu_id)}},
+        upsert=True,
+    )
+
+
+async def is_rejected_waifu(waifu_id: str) -> bool:
+    """check karo ki ye waifu pehle reject hua hai ya nahi."""
+    col = _db()["rejected_waifus"]
+    doc = await col.find_one({"waifu_id": str(waifu_id)})
+    return doc is not None
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -245,12 +265,6 @@ async def remove_string_session() -> None:
     await _del_config("string_session")
 
 
-async def add_rejected_waifu(waifu_id: str):
-    """rejected waifu ka id save karo"""
-
-async def is_rejected_waifu(waifu_id: str) -> bool:
-    """check karo ki ye already reject hua hai"""
-  
 # ── Keyboard / Caption Message ─────────────────────────────────────────────────
 
 async def set_keyboard_message(text: str) -> None:
