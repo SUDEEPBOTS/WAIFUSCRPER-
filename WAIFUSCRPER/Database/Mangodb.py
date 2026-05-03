@@ -245,6 +245,12 @@ async def remove_string_session() -> None:
     await _del_config("string_session")
 
 
+async def add_rejected_waifu(waifu_id: str):
+    """rejected waifu ka id save karo"""
+
+async def is_rejected_waifu(waifu_id: str) -> bool:
+    """check karo ki ye already reject hua hai"""
+  
 # ── Keyboard / Caption Message ─────────────────────────────────────────────────
 
 async def set_keyboard_message(text: str) -> None:
