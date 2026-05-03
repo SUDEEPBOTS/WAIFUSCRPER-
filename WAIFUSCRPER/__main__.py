@@ -1,7 +1,6 @@
 """
 WAIFUSCRPER — __main__.py
 Entry point. Loads all plugins and starts the bot.
-Logging is wired through WAIFUSCRPER.Logging (loguru-based).
 """
 
 import asyncio
@@ -12,20 +11,13 @@ from pyrogram import idle
 
 import config
 from WAIFUSCRPER import app
-from WAIFUSCRPER.Logging import LOGGER          # ← centralized logger
+from WAIFUSCRPER.Logging import LOGGER
 from WAIFUSCRPER.tools import ALL_MODULES
 from WAIFUSCRPER.Database import get_sudo_users
 
-# ── Module-level logger ────────────────────────────────────────────────────────
 log = LOGGER(__name__)
-
-# ── Ensure logs/ directory exists before loguru tries to write there ───────────
 os.makedirs("logs", exist_ok=True)
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  STARTUP
-# ══════════════════════════════════════════════════════════════════════════════
 
 async def init():
 
@@ -35,27 +27,32 @@ async def init():
 
     # ── Validate required config ───────────────────────────────────────────────
     missing = []
-    if not config.BOT_TOKEN:
-        missing.append("BOT_TOKEN")
-    if not config.API_ID:
-        missing.append("API_ID")
-    if not config.API_HASH:
-        missing.append("API_HASH")
-    if not config.MONGO_URI:
-        missing.append("MONGO_URI")
+    if not config.BOT_TOKEN:  missing.append("BOT_TOKEN")
+    if not config.API_ID:     missing.append("API_ID")
+    if not config.API_HASH:   missing.append("API_HASH")
+    if not config.MONGO_URI:  missing.append("MONGO_URI")
 
     if missing:
         for key in missing:
-            log.error(f"❌ {key} ɴᴏᴛ sᴇᴛ ɪɴ .ᴇɴᴠ")
-        log.error("ꜰɪʟʟ ᴀʟʟ ʀᴇQᴜɪʀᴇᴅ ᴠᴀʀs ᴀɴᴅ ʀᴇsᴛᴀʀᴛ — ᴀʙᴏʀᴛɪɴɢ.")
+            log.error(f"❌ {key} not set in .env")
         exit(1)
 
-    # ── Auto-load all plugins FIRST (before app.start) ────────────────────────
-    log.info("ʟᴏᴀᴅɪɴɢ ᴘʟᴜɢɪɴs...")
+    # ── Start bot FIRST ────────────────────────────────────────────────────────
+    await app.start()
+    me = await app.get_me()
+    log.info(f"ʙᴏᴛ sᴛᴀʀᴛᴇᴅ ✅  @{me.username}  (ID: {me.id})")
 
-    loaded = 0
-    failed = 0
-    failed_list = []
+    # ── Load sudo users ────────────────────────────────────────────────────────
+    try:
+        config.SUDO_USERS = await get_sudo_users()
+        log.info(f"sᴜᴅᴏ ᴜsᴇʀs ʟᴏᴀᴅᴇᴅ: {len(config.SUDO_USERS)}")
+    except Exception as e:
+        log.warning(f"Could not load sudo users: {e}")
+        config.SUDO_USERS = []
+
+    # ── Load plugins AFTER app.start() ────────────────────────────────────────
+    log.info("ʟᴏᴀᴅɪɴɢ ᴘʟᴜɢɪɴs...")
+    loaded, failed, failed_list = 0, 0, []
 
     for module in ALL_MODULES:
         try:
@@ -72,34 +69,15 @@ async def init():
         + (f"  |  {failed} ꜰᴀɪʟᴇᴅ → {failed_list}" if failed else "")
     )
 
-    # ── Start Pyrogram bot client AFTER plugins ────────────────────────────────
-    await app.start()
-    me = await app.get_me()
-    log.info(f"ʙᴏᴛ sᴛᴀʀᴛᴇᴅ ✅  @{me.username}  (ID: {me.id})")
-
-    # ── Load sudo users from DB into memory ────────────────────────────────────
-    try:
-        sudo_users = await get_sudo_users()
-        config.SUDO_USERS = sudo_users
-        log.info(f"sᴜᴅᴏ ᴜsᴇʀs ʟᴏᴀᴅᴇᴅ: {len(sudo_users)}")
-    except Exception as e:
-        log.warning(f"Could not load sudo users from DB: {e}")
-        config.SUDO_USERS = []
-
-    # ── Ready ──────────────────────────────────────────────────────────────────
     log.info("━" * 45)
-    log.info("  ᴡᴀɪꜰᴜsᴄʀᴘᴇʀ ɪs ʀᴜɴɴɪɴɢ 🚀  |  sᴜᴅᴏ: /help")
+    log.info(f"  ʜᴀɴᴅʟᴇʀs ʀᴇɢɪsᴛᴇʀᴇᴅ: {sum(len(v) for v in app.dispatcher.groups.values())}")
+    log.info("  ᴡᴀɪꜰᴜsᴄʀᴘᴇʀ ɪs ʀᴜɴɴɪɴɢ 🚀")
     log.info("━" * 45)
 
     await idle()
-
-    # ── Graceful shutdown ──────────────────────────────────────────────────────
     await app.stop()
     log.info("ᴡᴀɪꜰᴜsᴄʀᴘᴇʀ sᴛᴏᴘᴘᴇᴅ. ɢᴏᴏᴅʙʏᴇ 👋")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-
 if __name__ == "__main__":
     asyncio.run(init())
-
