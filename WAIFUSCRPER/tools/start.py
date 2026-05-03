@@ -1,12 +1,4 @@
-from pyrogram import enums
-"""
-WAIFUSCRPER — tools/start.py
-Handles:
-  • /start command  → Main menu
-  • menu_home callback → Back to main menu
-"""
-
-from pyrogram import Client, filters
+from pyrogram import Client, filters, enums
 from pyrogram.types import (
     Message,
     CallbackQuery,
@@ -24,24 +16,24 @@ log = LOGGER(__name__)
 START_TEXT = (
     "🌸 <b>ᴡᴀɪꜰᴜsᴄʀᴘᴇʀ</b> — ʏᴏᴜʀ ᴡᴀɪꜰᴜ ᴄᴏʟʟᴇᴄᴛɪᴏɴ ʙᴏᴛ!\n\n"
     "━━━━━━━━━━━━━━━━━━━━━\n"
-    "🤖 ᴍᴀɪɴ ꜰᴇᴀᴛᴜʀᴇs:\n"
-    "  • ᴛᴇʟᴇɢʀᴀᴍ ᴄʜᴀɴɴᴇʟ sᴇ ᴡᴀɪꜰᴜs sᴄʀᴀᴘᴇ ᴋᴀʀᴏ\n"
-    "  • ᴀᴘᴘʀᴏᴠᴇ / ᴀᴜᴛᴏ ᴍᴏᴅᴇ\n"
-    "  • ᴍᴏɴɢᴏᴅʙ ᴍᴇɪɴ sᴀᴠᴇ\n"
-    "  • ᴄᴀᴛʙᴏx + ɪᴍɢʙʙ ɪᴍᴀɢᴇ ʜᴏsᴛɪɴɢ\n"
+    "🤖 ϻᴀιη ғєᴀᴛᴜʀєs:\n"
+    "  • sᴄʀᴀᴘє ᴡᴀɪғᴜs ғʀᴏϻ ᴛєʟєɢʀᴀϻ ᴄʜᴀηηєʟs\n"
+    "  • ᴀᴘᴘʀᴏᴠє / ᴀᴜᴛᴏ ϻᴏᴅє\n"
+    "  • sᴀᴠє ᴛᴏ ϻᴏηɢᴏᴅʙ\n"
+    "  • ᴄᴀᴛʙᴏx + ιϻɢʙʙ ιϻᴀɢє ʜᴏsᴛιηɢ\n"
     "━━━━━━━━━━━━━━━━━━━━━\n\n"
-    "Niche se option chunlo 👇"
+    "choose an option below 👇"
 )
 
 
 def _main_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("⚙️ Config", callback_data="menu_config_p1"),
-            InlineKeyboardButton("❓ Help",   callback_data="menu_help"),
+            InlineKeyboardButton("˹ 𝐂ᴏηғιɢ ˼",  callback_data="menu_config_p1"),
+            InlineKeyboardButton("˹ 𝚮єʟᴘ ˼",    callback_data="menu_help"),
         ],
         [
-            InlineKeyboardButton("📊 Group Stats", callback_data="menu_stats"),
+            InlineKeyboardButton("˹ 𝐒ᴛᴀᴛs ˼",   callback_data="menu_stats"),
         ],
     ])
 
@@ -78,7 +70,7 @@ async def cb_menu_stats(client: Client, cq: CallbackQuery):
     try:
         count = await get_waifu_count()
     except Exception:
-        count = "N/A"
+        count = "n/a"
 
     chat = cq.message.chat
     is_group = chat.type in ("group", "supergroup")
@@ -87,27 +79,27 @@ async def cb_menu_stats(client: Client, cq: CallbackQuery):
         try:
             members = await client.get_chat_members_count(chat.id)
         except Exception:
-            members = "N/A"
+            members = "n/a"
         text = (
-            f"📊 <b>Group Stats</b>\n\n"
-            f"👥 <b>Members:</b>  <code>{members}</code>\n"
-            f"🖼 <b>Total Waifus (DB):</b>  <code>{count}</code>\n"
-            f"🏷 <b>Group:</b>  {chat.title}\n"
+            f"📊 <b>ɢʀᴏᴜᴘ sᴛᴀᴛs</b>\n\n"
+            f"👥 <b>ϻєϻʙєʀs:</b>  <code>{members}</code>\n"
+            f"🖼 <b>ᴛᴏᴛᴀʟ ᴡᴀɪғᴜs (ᴅʙ):</b>  <code>{count}</code>\n"
+            f"🏷 <b>ɢʀᴏᴜᴘ:</b>  {chat.title}\n"
         )
     else:
         text = (
-            f"📊 <b>Bot Stats</b>\n\n"
-            f"🖼 <b>Total Waifus (DB):</b>  <code>{count}</code>\n"
+            f"📊 <b>ʙᴏᴛ sᴛᴀᴛs</b>\n\n"
+            f"🖼 <b>ᴛᴏᴛᴀʟ ᴡᴀɪғᴜs (ᴅʙ):</b>  <code>{count}</code>\n"
         )
 
     try:
         await cq.message.edit_text(
             text,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🏠 Home", callback_data="menu_home")],
+                [InlineKeyboardButton("˹ 𝚮ᴏϻє ˼", callback_data="menu_home")],
             ]),
             parse_mode=enums.ParseMode.HTML,
         )
     except Exception as e:
         log.error(f"menu_stats error: {e}")
-  
+      
