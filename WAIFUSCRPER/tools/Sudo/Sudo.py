@@ -11,6 +11,7 @@ from pyrogram.types import Message
 from loguru import logger
 
 import config
+from WAIFUSCRPER import app
 from WAIFUSCRPER.Database import add_sudo, remove_sudo, get_sudo_users
 
 
@@ -46,7 +47,7 @@ def _resolve_user(message: Message) -> int | None:
 
 # ── /addsudo ───────────────────────────────────────────────────────────────────
 
-@Client.on_message(filters.command("addsudo") & owner_filter)
+@app.on_message(filters.command("addsudo") & owner_filter, group=0)
 async def addsudo_handler(client: Client, message: Message):
     user_id = _resolve_user(message)
 
@@ -81,7 +82,7 @@ async def addsudo_handler(client: Client, message: Message):
 
 # ── /rmsudo ────────────────────────────────────────────────────────────────────
 
-@Client.on_message(filters.command("rmsudo") & owner_filter)
+@app.on_message(filters.command("rmsudo") & owner_filter, group=0)
 async def rmsudo_handler(client: Client, message: Message):
     user_id = _resolve_user(message)
 
@@ -116,7 +117,7 @@ async def rmsudo_handler(client: Client, message: Message):
 
 # ── /sudolist ──────────────────────────────────────────────────────────────────
 
-@Client.on_message(filters.command("sudolist") & owner_filter)
+@app.on_message(filters.command("sudolist") & owner_filter, group=0)
 async def sudolist_handler(client: Client, message: Message):
     sudo_users = await get_sudo_users()
 
@@ -148,4 +149,5 @@ async def sudolist_handler(client: Client, message: Message):
         parse_mode="html",
         disable_web_page_preview=True,
     )
+
   
