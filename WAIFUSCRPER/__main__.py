@@ -50,21 +50,7 @@ async def init():
         log.error("ꜰɪʟʟ ᴀʟʟ ʀᴇQᴜɪʀᴇᴅ ᴠᴀʀs ᴀɴᴅ ʀᴇsᴛᴀʀᴛ — ᴀʙᴏʀᴛɪɴɢ.")
         exit(1)
 
-    # ── Start Pyrogram bot client ──────────────────────────────────────────────
-    await app.start()
-    me = await app.get_me()
-    log.info(f"ʙᴏᴛ sᴛᴀʀᴛᴇᴅ ✅  @{me.username}  (ID: {me.id})")
-
-    # ── Load sudo users from DB into memory ────────────────────────────────────
-    try:
-        sudo_users = await get_sudo_users()
-        config.SUDO_USERS = sudo_users
-        log.info(f"sᴜᴅᴏ ᴜsᴇʀs ʟᴏᴀᴅᴇᴅ: {len(sudo_users)}")
-    except Exception as e:
-        log.warning(f"Could not load sudo users from DB: {e}")
-        config.SUDO_USERS = []
-
-    # ── Auto-load all plugins ──────────────────────────────────────────────────
+    # ── Auto-load all plugins FIRST (before app.start) ────────────────────────
     log.info("ʟᴏᴀᴅɪɴɢ ᴘʟᴜɢɪɴs...")
 
     loaded = 0
@@ -86,6 +72,20 @@ async def init():
         + (f"  |  {failed} ꜰᴀɪʟᴇᴅ → {failed_list}" if failed else "")
     )
 
+    # ── Start Pyrogram bot client AFTER plugins ────────────────────────────────
+    await app.start()
+    me = await app.get_me()
+    log.info(f"ʙᴏᴛ sᴛᴀʀᴛᴇᴅ ✅  @{me.username}  (ID: {me.id})")
+
+    # ── Load sudo users from DB into memory ────────────────────────────────────
+    try:
+        sudo_users = await get_sudo_users()
+        config.SUDO_USERS = sudo_users
+        log.info(f"sᴜᴅᴏ ᴜsᴇʀs ʟᴏᴀᴅᴇᴅ: {len(sudo_users)}")
+    except Exception as e:
+        log.warning(f"Could not load sudo users from DB: {e}")
+        config.SUDO_USERS = []
+
     # ── Ready ──────────────────────────────────────────────────────────────────
     log.info("━" * 45)
     log.info("  ᴡᴀɪꜰᴜsᴄʀᴘᴇʀ ɪs ʀᴜɴɴɪɴɢ 🚀  |  sᴜᴅᴏ: /help")
@@ -102,4 +102,4 @@ async def init():
 
 if __name__ == "__main__":
     asyncio.run(init())
-    
+
