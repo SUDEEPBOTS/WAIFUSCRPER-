@@ -1,13 +1,4 @@
-from pyrogram import enums
-"""
-WAIFUSCRPER — tools/help.py
-Handles:
-  • /help command
-  • menu_help callback (start.py ke Home button se)
-  • Category-wise guide with inline navigation
-"""
-
-from pyrogram import Client, filters
+from pyrogram import Client, filters, enums
 from pyrogram.types import (
     Message,
     CallbackQuery,
@@ -20,203 +11,191 @@ from WAIFUSCRPER.Logging import LOGGER
 
 log = LOGGER(__name__)
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  HELP CONTENT
-# ══════════════════════════════════════════════════════════════════════════════
-
 HELP_SECTIONS = {
 
     "main": {
         "text": (
-            "❓ <b>WAIFUSCRPER — Help Guide</b>\n\n"
-            "Niche se category chunlo:"
+            "❓ <b>waifuscrper — help guide</b>\n\n"
+            "choose a category below:"
         ),
         "buttons": [
             [
-                InlineKeyboardButton("🤖 Basic Commands",  callback_data="help_basic"),
-                InlineKeyboardButton("👑 Admin Commands",  callback_data="help_admin"),
+                InlineKeyboardButton("˹ 𝐁ᴀsιᴄ 𝐂ᴏϻϻᴀηᴅs ˼",  callback_data="help_basic"),
+                InlineKeyboardButton("˹ 𝐀ᴅϻιη 𝐂ᴏϻϻᴀηᴅs ˼",  callback_data="help_admin"),
             ],
             [
-                InlineKeyboardButton("⚙️ Config Guide",    callback_data="help_config"),
-                InlineKeyboardButton("📥 Scraper Guide",   callback_data="help_scraper"),
+                InlineKeyboardButton("˹ 𝐂ᴏηғιɢ 𝚮ᴜιᴅє ˼",     callback_data="help_config"),
+                InlineKeyboardButton("˹ 𝐒ᴄʀᴀᴘєʀ 𝚮ᴜιᴅє ˼",    callback_data="help_scraper"),
             ],
             [
-                InlineKeyboardButton("🔐 Session Guide",   callback_data="help_session"),
+                InlineKeyboardButton("˹ 𝐒єssιᴏη 𝚮ᴜιᴅє ˼",    callback_data="help_session"),
             ],
             [
-                InlineKeyboardButton("🏠 Home",            callback_data="menu_home"),
+                InlineKeyboardButton("˹ 𝚮ᴏϻє ˼",              callback_data="menu_home"),
             ],
         ],
     },
 
     "basic": {
         "text": (
-            "🤖 <b>Basic Commands</b>\n\n"
+            "🤖 <b>basic commands</b>\n\n"
 
             "/start\n"
-            "┗ Bot ka main menu kholta hai.\n\n"
+            "┗ opens the bot's main menu.\n\n"
 
             "/help\n"
-            "┗ Yeh guide dikhata hai.\n\n"
+            "┗ shows this guide.\n\n"
 
             "/cancel\n"
-            "┗ Koi bhi chal raha setup (jaise string session) band kar deta hai.\n\n"
+            "┗ cancels any running setup (like string session).\n\n"
 
             "/setsession\n"
-            "┗ String session setup shuru karta hai.\n"
-            "┗ Phone → OTP → 2FA (agar laga ho) → Done.\n"
-            "┗ 120 second ka timeout hai har step pe.\n\n"
+            "┗ starts string session setup.\n"
+            "┗ phone → otp → 2fa (if enabled) → done.\n"
+            "┗ 120 second timeout per step.\n\n"
         ),
         "buttons": [
             [
-                InlineKeyboardButton("⬅️ Back",  callback_data="help_main"),
-                InlineKeyboardButton("🏠 Home",  callback_data="menu_home"),
+                InlineKeyboardButton("˹ 𝐁ᴀᴄᴋ ˼",  callback_data="help_main"),
+                InlineKeyboardButton("˹ 𝚮ᴏϻє ˼",  callback_data="menu_home"),
             ],
         ],
     },
 
     "admin": {
         "text": (
-            "👑 <b>Admin / Sudo Commands</b>\n\n"
-            "<i>Sirf Owner use kar sakta hai:</i>\n\n"
+            "👑 <b>admin / sudo commands</b>\n\n"
+            "<i>owner only:</i>\n\n"
 
             "/addsudo &lt;user_id&gt;\n"
-            "┗ Kisi ko sudo access deta hai.\n"
-            "┗ Reply karke bhi use kar sakte ho.\n\n"
+            "┗ grants sudo access to a user.\n"
+            "┗ can also be used by replying to a message.\n\n"
 
             "/rmsudo &lt;user_id&gt;\n"
-            "┗ Kisi ka sudo access hata deta hai.\n"
-            "┗ Owner ko remove nahi kar sakte.\n\n"
+            "┗ removes sudo access from a user.\n"
+            "┗ owner cannot be removed.\n\n"
 
             "/sudolist\n"
-            "┗ Saare sudo users ki list dikhata hai.\n\n"
+            "┗ shows the list of all sudo users.\n\n"
 
-            "<i>Sudo users config se nahi, DB se load hote hain.</i>\n"
+            "<i>sudo users are loaded from db, not config.</i>\n"
         ),
         "buttons": [
             [
-                InlineKeyboardButton("⬅️ Back",  callback_data="help_main"),
-                InlineKeyboardButton("🏠 Home",  callback_data="menu_home"),
+                InlineKeyboardButton("˹ 𝐁ᴀᴄᴋ ˼",  callback_data="help_main"),
+                InlineKeyboardButton("˹ 𝚮ᴏϻє ˼",  callback_data="menu_home"),
             ],
         ],
     },
 
     "config": {
         "text": (
-            "⚙️ <b>Config Guide</b>\n\n"
-            "/start → <b>Config</b> button press karo.\n\n"
+            "⚙️ <b>config guide</b>\n\n"
+            "/start → press the <b>config</b> button.\n\n"
 
-            "📋 <b>Page 1 — Setup</b>\n"
-            "┣ <b>Set Logger</b> — Log group/channel ID set karo\n"
-            "┣ <b>Set Approve Mode</b> — On/Off karo approve system\n"
-            "┣ <b>Set String Session</b> — Userbot login karo\n"
-            "┣ <b>Set Caption Keyword</b> — Rarity keyword set karo\n"
-            "┗ <b>Set Collection Name</b> — MongoDB collection naam\n\n"
+            "📋 <b>page 1 — setup</b>\n"
+            "┣ <b>set logger</b> — set log group/channel id\n"
+            "┣ <b>set approve mode</b> — turn approve system on/off\n"
+            "┣ <b>set string session</b> — login userbot\n"
+            "┣ <b>set caption keyword</b> — set rarity keyword\n"
+            "┗ <b>set collection name</b> — mongodb collection name\n\n"
 
-            "📋 <b>Page 2 — Remove / Target</b>\n"
-            "┣ <b>Remove String Session</b> — Session hata do\n"
-            "┣ <b>Remove Logger</b> — Logger hata do\n"
-            "┣ <b>Remove Collection</b> — DB collection naam hata do\n"
-            "┣ <b>Remove Waifu by ID</b> — Specific waifu delete karo\n"
-            "┣ <b>Set Target Channel</b> — Jis channel se scrape karna\n"
-            "┣ <b>Fetch All Waifus</b> — Poora channel scan karo\n"
-            "┗ <b>Set Keyboard Message</b> — Custom message set karo\n"
+            "📋 <b>page 2 — remove / target</b>\n"
+            "┣ <b>remove string session</b> — delete session\n"
+            "┣ <b>remove logger</b> — delete logger\n"
+            "┣ <b>remove collection</b> — delete db collection name\n"
+            "┣ <b>remove waifu by id</b> — delete a specific waifu\n"
+            "┣ <b>set target channel</b> — channel to scrape from\n"
+            "┣ <b>fetch all waifus</b> — scan entire channel\n"
+            "┗ <b>set keyboard message</b> — set custom message\n"
         ),
         "buttons": [
             [
-                InlineKeyboardButton("⬅️ Back",  callback_data="help_main"),
-                InlineKeyboardButton("🏠 Home",  callback_data="menu_home"),
+                InlineKeyboardButton("˹ 𝐁ᴀᴄᴋ ˼",  callback_data="help_main"),
+                InlineKeyboardButton("˹ 𝚮ᴏϻє ˼",  callback_data="menu_home"),
             ],
         ],
     },
 
     "scraper": {
         "text": (
-            "📥 <b>Scraper Guide</b>\n\n"
+            "📥 <b>scraper guide</b>\n\n"
 
-            "<b>Kaise kaam karta hai:</b>\n\n"
+            "<b>how it works:</b>\n\n"
 
-            "1️⃣ <b>Config mein Target Channel set karo</b>\n"
-            "┗ Jis channel se waifus scrape karne hain.\n\n"
+            "1️⃣ <b>set target channel in config</b>\n"
+            "┗ the channel you want to scrape waifus from.\n\n"
 
-            "2️⃣ <b>String Session set karo</b>\n"
-            "┗ Userbot us channel mein join karega.\n\n"
+            "2️⃣ <b>set string session</b>\n"
+            "┗ userbot will join that channel.\n\n"
 
-            "3️⃣ <b>Fetch All Waifus</b> karo Config se\n"
-            "┗ Poora channel scan hoga, ek ek message process hoga.\n\n"
+            "3️⃣ <b>fetch all waifus</b> from config\n"
+            "┗ full channel scan, processes each message one by one.\n\n"
 
-            "4️⃣ <b>Caption parsing:</b>\n"
-            "┗ Waifu ID, Name, Rarity, Series, Added By — sab nikalta hai.\n"
-            "┗ Agar caption mein ID nahi — auto-generate hoti hai.\n\n"
+            "4️⃣ <b>caption parsing:</b>\n"
+            "┗ extracts waifu id, name, rarity, series, added by.\n"
+            "┗ if no id in caption — auto-generated.\n\n"
 
-            "5️⃣ <b>Image upload:</b>\n"
-            "┗ Catbox pe upload hoti hai (primary).\n"
-            "┗ Fail ho toh ImgBB pe (fallback).\n\n"
+            "5️⃣ <b>image upload:</b>\n"
+            "┗ uploads to catbox (primary).\n"
+            "┗ falls back to imgbb if catbox fails.\n\n"
 
-            "6️⃣ <b>MongoDB mein save:</b>\n"
+            "6️⃣ <b>saved to mongodb:</b>\n"
             "<code>{ name, img_url, rarity, series,\n"
-            "  waifu_id, added_by, Date, event_tag }</code>\n\n"
+            "  waifu_id, added_by, date, event_tag }</code>\n\n"
 
-            "⚡ <b>Auto Fetch New:</b>\n"
-            "┗ Config se On/Off — naye waifus aate hi capture karta hai.\n\n"
+            "⚡ <b>auto fetch new:</b>\n"
+            "┗ on/off from config — captures new waifus as they arrive.\n\n"
 
-            "✅ <b>Approve Mode:</b>\n"
-            "┗ On → Logger group mein approve manga.\n"
-            "┗ Off → Auto save.\n"
+            "✅ <b>approve mode:</b>\n"
+            "┗ on → asks for approval in logger group.\n"
+            "┗ off → auto save.\n"
         ),
         "buttons": [
             [
-                InlineKeyboardButton("⬅️ Back",  callback_data="help_main"),
-                InlineKeyboardButton("🏠 Home",  callback_data="menu_home"),
+                InlineKeyboardButton("˹ 𝐁ᴀᴄᴋ ˼",  callback_data="help_main"),
+                InlineKeyboardButton("˹ 𝚮ᴏϻє ˼",  callback_data="menu_home"),
             ],
         ],
     },
 
     "session": {
         "text": (
-            "🔐 <b>String Session Guide</b>\n\n"
+            "🔐 <b>string session guide</b>\n\n"
 
-            "<b>String session kya hai?</b>\n"
-            "┗ Userbot (tera Telegram account) bot ko channel "
-            "join karne aur messages read karne deta hai.\n\n"
+            "<b>what is a string session?</b>\n"
+            "┗ lets the userbot (your telegram account) join channels "
+            "and read messages on behalf of the bot.\n\n"
 
-            "<b>Setup kaise karo:</b>\n\n"
-            "1️⃣ Config → <b>Set String Session</b> dabao\n"
-            "   ya seedha /setsession likho.\n\n"
-            "2️⃣ <b>Phone number</b> bhejo (+91XXXXXXXXXX)\n\n"
-            "3️⃣ Telegram se aaya <b>OTP</b> bhejo\n"
-            "   (spaces ke saath, jaise Telegram bhejta hai)\n\n"
-            "4️⃣ Agar <b>2FA laga hai</b> → password bhi mangega\n\n"
-            "5️⃣ Session DB mein save ho jayegi ✅\n\n"
+            "<b>how to set it up:</b>\n\n"
+            "1️⃣ config → press <b>set string session</b>\n"
+            "   or just send /setsession.\n\n"
+            "2️⃣ send your <b>phone number</b> (+91xxxxxxxxxx)\n\n"
+            "3️⃣ send the <b>otp</b> from telegram\n"
+            "   (spaces are fine, just as telegram sends it)\n\n"
+            "4️⃣ if <b>2fa is enabled</b> → it will ask for password too\n\n"
+            "5️⃣ session is saved to db ✅\n\n"
 
-            "⚠️ <b>Dhyan rakh:</b>\n"
-            "┣ Har step pe <b>120 second</b> ka timeout hai.\n"
-            "┣ Beech mein /cancel likhke band kar sakte ho.\n"
-            "┗ Session DB mein save hai — dobara set karne ki "
-            "zarurat nahi jab tak remove na karo.\n"
+            "⚠️ <b>note:</b>\n"
+            "┣ each step has a <b>120 second</b> timeout.\n"
+            "┣ send /cancel anytime to abort.\n"
+            "┗ session stays in db — no need to set again "
+            "unless you remove it.\n"
         ),
         "buttons": [
             [
-                InlineKeyboardButton("⬅️ Back",  callback_data="help_main"),
-                InlineKeyboardButton("🏠 Home",  callback_data="menu_home"),
+                InlineKeyboardButton("˹ 𝐁ᴀᴄᴋ ˼",  callback_data="help_main"),
+                InlineKeyboardButton("˹ 𝚮ᴏϻє ˼",  callback_data="menu_home"),
             ],
         ],
     },
 }
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  HELPERS
-# ══════════════════════════════════════════════════════════════════════════════
-
 def _build(section: str) -> tuple[str, InlineKeyboardMarkup]:
     data = HELP_SECTIONS[section]
     return data["text"], InlineKeyboardMarkup(data["buttons"])
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  /help COMMAND
-# ══════════════════════════════════════════════════════════════════════════════
 
 @app.on_message(filters.command("help") & (filters.private | filters.group), group=0)
 async def help_cmd(client: Client, message: Message):
@@ -224,10 +203,6 @@ async def help_cmd(client: Client, message: Message):
     await message.reply_text(text, reply_markup=markup, parse_mode=enums.ParseMode.HTML)
     log.info(f"/help → {message.from_user.id}")
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  CALLBACKS
-# ══════════════════════════════════════════════════════════════════════════════
 
 @app.on_callback_query(filters.regex("^menu_help$"), group=0)
 async def cb_menu_help(client: Client, cq: CallbackQuery):
@@ -238,10 +213,10 @@ async def cb_menu_help(client: Client, cq: CallbackQuery):
 
 @app.on_callback_query(filters.regex("^help_(.+)$"), group=0)
 async def cb_help_section(client: Client, cq: CallbackQuery):
-    section = cq.matches[0].group(1)   # e.g. "basic", "admin", "config" …
+    section = cq.matches[0].group(1)
 
     if section not in HELP_SECTIONS:
-        return await cq.answer("Section nahi mila!", show_alert=True)
+        return await cq.answer("section not found!", show_alert=True)
 
     await cq.answer()
     text, markup = _build(section)
@@ -249,5 +224,5 @@ async def cb_help_section(client: Client, cq: CallbackQuery):
     try:
         await cq.message.edit_text(text, reply_markup=markup, parse_mode=enums.ParseMode.HTML)
     except Exception:
-        pass   # Message same hone pe Telegram error deta hai — ignore
-
+        pass
+      
