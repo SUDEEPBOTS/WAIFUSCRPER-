@@ -1,33 +1,25 @@
+# Scraper.py — sirf changed parts
+
 import asyncio
 import random
 
 from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait
 from pyrogram.types import (
-    Message,
-    CallbackQuery,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton,
+    Message, CallbackQuery,
+    InlineKeyboardMarkup, InlineKeyboardButton,
 )
 
 import config
 from WAIFUSCRPER import app
 from WAIFUSCRPER.Logging import LOGGER
 from WAIFUSCRPER.Database import (
-    get_string_session,
-    get_target_channel,
-    get_approve_mode,
-    get_logger,
-    get_sudo_users,
-    waifu_exists,
-    add_rejected_waifu,
-    is_rejected_waifu,
+    get_string_session, get_target_channel, get_approve_mode,
+    get_logger, get_sudo_users, waifu_exists,
+    add_rejected_waifu, is_rejected_waifu,
 )
 from WAIFUSCRPER.tools.dwonloder.Dwonlod import (
-    parse_caption,
-    download_photo,
-    upload_image,
-    save_waifu,
+    parse_caption, download_photo, upload_image, save_waifu,
 )
 
 log = LOGGER(__name__)
@@ -39,13 +31,14 @@ _results:         dict[str, bool] = {}
 PROGRESS_EVERY = 10
 
 
+# ── helpers ──────────────────────────────────────────────────────────────────
+
 async def _is_authorized(user_id: int) -> bool:
     if user_id == config.OWNER_ID:
         return True
     if user_id in config.SUDO_USERS:
         return True
-    db_sudos = await get_sudo_users()
-    return user_id in db_sudos
+    return user_id in await get_sudo_users()
 
 
 async def _get_userbot() -> Client | None:
@@ -71,24 +64,44 @@ async def _count_photos(userbot: Client, channel) -> int:
     return count
 
 
-def _approve_keyboard(key: str, img_url: str) -> InlineKeyboardMarkup:
+def _build_msg_link(channel, msg_id: int) -> str:
+    """
+    Public channel  →  @username  →  https://t.me/username/123
+    Private channel →  -100xxxxxxx  →  https://t.me/c/xxxxxxx/123
+    """
+    if isinstance(channel, str):
+        username = channel.lstrip("@")
+        return f"https://t.me/{username}/{msg_id}"
+    # numeric id (private channel)
+    cid = str(channel)
+    if cid.startswith("-100"):
+        cid = cid[4:]          # strip -100
+    elif cid.startswith("-"):
+        cid = cid[1:]
+    return f"https://t.me/c/{cid}/{msg_id}"
+
+
+def _approve_keyboard(key: str, img_url: str, msg_link: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [
             InlineKeyboardButton("✅ 𝐀ᴘᴘʀᴏᴠᴇ", callback_data=f"wapprove_{key}"),
             InlineKeyboardButton("❌ 𝚂ᴋɪᴘ",    callback_data=f"wskip_{key}"),
         ],
         [
-            # view button — browser mein khulta hai
-            InlineKeyboardButton("🖼 𝚅𝚒𝚎𝚠 𝚆𝚊𝚒𝚏𝚞", url=img_url),
+            # ✅ source channel message — Telegram inline preview
+            InlineKeyboardButton("📨 𝚅𝚒𝚎𝚠 𝚒𝚗 𝙲𝚑𝚊𝚗𝚗𝚎𝚕", url=msg_link),
+            # catbox/imgbb direct link (fallback)
+            InlineKeyboardButton("🖼 𝙸𝚖𝚊𝚐𝚎",            url=img_url),
         ],
     ])
 
 
-async def _ask_approve(logger_id: int, parsed: dict, img_url: str) -> bool:
-    """
-    send_message with plain catbox URL at top → Telegram auto preview (image).
-    SendMedia = 0, no extra EditMessage for buttons = fast, no flood.
-    """
+async def _ask_approve(
+    logger_id: int,
+    parsed: dict,
+    img_url: str,
+    msg_link: str,          # ← new param
+) -> bool:
     text = (
         f"{img_url}\n\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
@@ -106,7 +119,7 @@ async def _ask_approve(logger_id: int, parsed: dict, img_url: str) -> bool:
             chat_id=logger_id,
             text=text,
             parse_mode=enums.ParseMode.HTML,
-            reply_markup=_approve_keyboard("PLACEHOLDER", img_url),
+            reply_markup=_approve_keyboard("PLACEHOLDER", img_url, msg_link),
             disable_web_page_preview=False,
         )
     except Exception as e:
@@ -115,7 +128,7 @@ async def _ask_approve(logger_id: int, parsed: dict, img_url: str) -> bool:
 
     key = str(sent.id)
     try:
-        await sent.edit_reply_markup(_approve_keyboard(key, img_url))
+        await sent.edit_reply_markup(_approve_keyboard(key, img_url, msg_link))
     except Exception:
         pass
 
@@ -141,6 +154,8 @@ async def _ask_approve(logger_id: int, parsed: dict, img_url: str) -> bool:
         return False
 
 
+# ── callback: approve / skip ──────────────────────────────────────────────────
+
 @app.on_callback_query(filters.regex(r"^w(approve|skip)_(\d+)$"))
 async def cb_approve_skip(client: Client, cq: CallbackQuery):
     if not await _is_authorized(cq.from_user.id):
@@ -159,6 +174,7 @@ async def cb_approve_skip(client: Client, cq: CallbackQuery):
     label = "✅ 𝙰𝚙𝚙𝚛𝚘𝚟𝚎𝚍" if approved else "❌ 𝚂𝚔𝚒𝚙𝚙𝚎𝚍"
     await cq.answer(label)
 
+    # ── edit message to show result ──
     try:
         original_text = cq.message.text or ""
         await cq.message.edit_text(
@@ -170,6 +186,15 @@ async def cb_approve_skip(client: Client, cq: CallbackQuery):
     except Exception:
         pass
 
+    # ✅ 3 second baad auto-delete
+    await asyncio.sleep(3)
+    try:
+        await cq.message.delete()
+    except Exception:
+        pass
+
+
+# ── scrape loop ───────────────────────────────────────────────────────────────
 
 async def _scrape_loop(
     userbot: Client,
@@ -199,48 +224,42 @@ async def _scrape_loop(
             total += 1
 
             try:
-                # step 1: caption parse
                 parsed = parse_caption(msg.caption or "")
                 if not parsed:
                     skipped += 1
                     continue
 
-                # ✅ step 2: early duplicate + rejected check (download/upload waste nahi)
                 if parsed.get("waifu_id"):
                     if await waifu_exists(parsed["waifu_id"]):
-                        log.info(f"duplicate early skip → {parsed['waifu_id']} ({parsed['name']})")
+                        log.info(f"duplicate early skip → {parsed['waifu_id']}")
                         skipped += 1
                         continue
                     if await is_rejected_waifu(parsed["waifu_id"]):
-                        log.info(f"rejected early skip → {parsed['waifu_id']} ({parsed['name']})")
+                        log.info(f"rejected early skip → {parsed['waifu_id']}")
                         skipped += 1
                         continue
 
-                # step 3: photo download
                 data, fname = await download_photo(userbot, msg)
                 if not data:
                     errors += 1
                     continue
 
-                # step 4: catbox/imgbb upload (retry logic Dwonlod.py mein)
                 img_url = await upload_image(data, fname)
                 if not img_url:
                     log.error(f"upload failed for msg {msg.id} — skipping")
                     errors += 1
                     continue
 
-                # step 5: approve (agar mode on hai)
                 if approve_mode and logger_id:
-                    approved = await _ask_approve(logger_id, parsed, img_url)
+                    # ✅ source message ka direct link
+                    msg_link = _build_msg_link(channel, msg.id)
+                    approved = await _ask_approve(logger_id, parsed, img_url, msg_link)
                     if not approved:
-                        # ✅ reject DB mein save karo taaki dubara na aaye
                         if parsed.get("waifu_id"):
                             await add_rejected_waifu(parsed["waifu_id"])
-                            log.info(f"rejected saved → {parsed['waifu_id']} ({parsed['name']})")
                         skipped += 1
                         continue
 
-                # step 6: DB save
                 saved_ok = await save_waifu(parsed, img_url, source_message_id=msg.id)
                 if saved_ok:
                     saved += 1
@@ -250,7 +269,7 @@ async def _scrape_loop(
 
             except FloodWait as e:
                 wait_time = e.value + 2
-                log.warning(f"floodwait! waiting for {wait_time}s...")
+                log.warning(f"floodwait! waiting {wait_time}s...")
                 await asyncio.sleep(wait_time)
             except Exception as e:
                 log.error(f"error on msg {msg.id}: {e}")
@@ -272,9 +291,7 @@ async def _scrape_loop(
                 except Exception:
                     pass
 
-            gap = random.uniform(1.0, 2.0)
-            log.info(f"sleeping for {gap:.2f}s...")
-            await asyncio.sleep(gap)
+            await asyncio.sleep(random.uniform(1.0, 2.0))
 
     except Exception as e:
         log.error(f"scrape loop crashed: {e}")
@@ -300,8 +317,8 @@ async def _scrape_loop(
         except Exception:
             pass
 
-        log.info(f"scrape done — {saved} saved / {skipped} skipped / {errors} errors (user={user_id})")
 
+# ── commands ──────────────────────────────────────────────────────────────────
 
 @app.on_message(filters.command("wstart") & filters.private)
 async def cmd_wstart(client: Client, message: Message):
@@ -442,5 +459,4 @@ async def cmd_wstop(client: Client, message: Message):
     await message.reply_text(
         "⏹ <b>𝚂𝚝𝚘𝚙𝚙𝚒𝚗𝚐 𝚂𝚌𝚛𝚊𝚙𝚎...</b>\n<i>will stop after current waifu.</i>",
         parse_mode=enums.ParseMode.HTML,
-    )
-    
+                )
