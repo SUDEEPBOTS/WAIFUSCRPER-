@@ -1,18 +1,16 @@
 """
 WAIFUSCRPER — __main__.py
-Entry point. Loads all plugins and starts the bot.
+Entry point. Plugins already loaded in __init__.py
 """
 
 import asyncio
-import importlib
 import os
 
 from pyrogram import idle
 
 import config
-from WAIFUSCRPER import app
+from WAIFUSCRPER import app  # plugins load ho jaate hain yahan import pe
 from WAIFUSCRPER.Logging import LOGGER
-from WAIFUSCRPER.tools import ALL_MODULES
 from WAIFUSCRPER.Database import get_sudo_users
 
 log = LOGGER(__name__)
@@ -37,11 +35,6 @@ async def init():
             log.error(f"❌ {key} not set in .env")
         exit(1)
 
-    # ── Start bot FIRST ────────────────────────────────────────────────────────
-    await app.start()
-    me = await app.get_me()
-    log.info(f"ʙᴏᴛ sᴛᴀʀᴛᴇᴅ ✅  @{me.username}  (ID: {me.id})")
-
     # ── Load sudo users ────────────────────────────────────────────────────────
     try:
         config.SUDO_USERS = await get_sudo_users()
@@ -50,27 +43,13 @@ async def init():
         log.warning(f"Could not load sudo users: {e}")
         config.SUDO_USERS = []
 
-    # ── Load plugins AFTER app.start() ────────────────────────────────────────
-    log.info("ʟᴏᴀᴅɪɴɢ ᴘʟᴜɢɪɴs...")
-    loaded, failed, failed_list = 0, 0, []
-
-    for module in ALL_MODULES:
-        try:
-            importlib.import_module(module, package="WAIFUSCRPER.tools")
-            log.info(f"  ✅  {module}")
-            loaded += 1
-        except Exception as e:
-            log.error(f"  ❌  {module}  →  {e}")
-            failed_list.append(module)
-            failed += 1
-
-    log.info(
-        f"ᴘʟᴜɢɪɴs: {loaded} ʟᴏᴀᴅᴇᴅ"
-        + (f"  |  {failed} ꜰᴀɪʟᴇᴅ → {failed_list}" if failed else "")
-    )
+    # ── Start bot ──────────────────────────────────────────────────────────────
+    await app.start()
+    me = await app.get_me()
+    log.info(f"ʙᴏᴛ sᴛᴀʀᴛᴇᴅ ✅  @{me.username}  (ID: {me.id})")
+    log.info(f"ʜᴀɴᴅʟᴇʀs: {sum(len(v) for v in app.dispatcher.groups.values())}")
 
     log.info("━" * 45)
-    log.info(f"  ʜᴀɴᴅʟᴇʀs ʀᴇɢɪsᴛᴇʀᴇᴅ: {sum(len(v) for v in app.dispatcher.groups.values())}")
     log.info("  ᴡᴀɪꜰᴜsᴄʀᴘᴇʀ ɪs ʀᴜɴɴɪɴɢ 🚀")
     log.info("━" * 45)
 
@@ -81,3 +60,4 @@ async def init():
 
 if __name__ == "__main__":
     asyncio.run(init())
+    
