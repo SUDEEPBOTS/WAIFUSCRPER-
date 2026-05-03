@@ -1,1 +1,24 @@
-
+services:
+  - type: worker
+    name: waifuscrper
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 main.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: API_ID
+        sync: false
+      - key: API_HASH
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: OWNER_ID
+        sync: false
+      - key: CATBOX_HASH
+        sync: false
+      - key: IMGBB_KEY
+        sync: false
+        
