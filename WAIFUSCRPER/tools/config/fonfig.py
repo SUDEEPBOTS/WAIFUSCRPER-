@@ -534,4 +534,20 @@ async def cb_set_keymsg(client: Client, cq: CallbackQuery):
 async def cb_toggle_autofetch(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
         return await cq.answer("🚫 Permission nahi!", show_alert=True)
-    a
+    await cq.answer()
+    current = await get_auto_fetch()
+    new_val = not current
+    await set_auto_fetch(new_val)
+    status = "🟢 ON" if new_val else "🔴 OFF"
+    await cq.message.edit_text(
+        f"🔄 <b>Auto Fetch New Waifus:</b>  {status}\n\n"
+        "<i>Naye waifus channel pe aate hi auto capture honge.</i>",
+        reply_markup=InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("🔄 Toggle Again", callback_data="cfg_toggle_autofetch"),
+                InlineKeyboardButton("◀️ Back",         callback_data="menu_config_p3"),
+            ],
+            [InlineKeyboardButton("🏠 Home", callback_data="menu_home")],
+        ]),
+        parse_mode="html",
+  )
