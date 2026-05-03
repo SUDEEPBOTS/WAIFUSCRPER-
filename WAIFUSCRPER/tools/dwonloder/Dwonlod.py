@@ -1,5 +1,6 @@
 from pyrogram import enums
 
+import asyncio
 import re
 import unicodedata
 from datetime import datetime
@@ -19,7 +20,10 @@ CATBOX_UA   = (
 IMGBB_URL = "https://api.imgbb.com/1/upload"
 IMGBB_KEY = config.IMGBB_KEY
 
-TIMEOUT = aiohttp.ClientTimeout(total=2)
+# ✅ FIX 1: 2s se badhake 30s — image upload ke liye kafi hai
+TIMEOUT     = aiohttp.ClientTimeout(total=30)
+MAX_RETRIES = 3          # kitni baar retry karna hai
+RETRY_DELAY = 2.0        # seconds between retries
 
 
 def _normalize(text: str) -> str:
@@ -31,59 +35,82 @@ def _normalize(text: str) -> str:
 
 
 async def _upload_catbox(data: bytes, filename: str) -> str | None:
-    """upload image bytes to catbox.moe. returns url or none."""
-    try:
-        form = aiohttp.FormData()
-        form.add_field("reqtype",  "fileupload")
-        form.add_field("userhash", CATBOX_HASH)
-        form.add_field(
-            "fileToUpload", data,
-            filename=filename,
-            content_type="image/jpeg",
-        )
-        async with aiohttp.ClientSession(headers={"User-Agent": CATBOX_UA}) as session:
-            async with session.post(CATBOX_URL, data=form, timeout=TIMEOUT) as resp:
-                text = await resp.text()
-                if resp.status == 200 and text.startswith("https://"):
-                    return text.strip()
-                logger.warning(f"catbox bad response [{resp.status}]: {text[:80]}")
-    except Exception as e:
-        logger.warning(f"catbox upload failed: {e}")
+    """
+    upload image bytes to catbox.moe. returns url or none.
+    ✅ FIX 2: retry loop added (MAX_RETRIES attempts)
+    """
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            form = aiohttp.FormData()
+            form.add_field("reqtype",  "fileupload")
+            form.add_field("userhash", CATBOX_HASH)
+            form.add_field(
+                "fileToUpload", data,
+                filename=filename,
+                content_type="image/jpeg",
+            )
+            async with aiohttp.ClientSession(headers={"User-Agent": CATBOX_UA}) as session:
+                async with session.post(CATBOX_URL, data=form, timeout=TIMEOUT) as resp:
+                    text = await resp.text()
+                    if resp.status == 200 and text.startswith("https://"):
+                        return text.strip()
+                    logger.warning(
+                        f"catbox bad response [{resp.status}] attempt {attempt}/{MAX_RETRIES}: {text[:80]}"
+                    )
+        except asyncio.TimeoutError:
+            logger.warning(f"catbox timeout attempt {attempt}/{MAX_RETRIES}")
+        except Exception as e:
+            logger.warning(f"catbox upload failed attempt {attempt}/{MAX_RETRIES}: {e}")
+
+        if attempt < MAX_RETRIES:
+            await asyncio.sleep(RETRY_DELAY)
+
     return None
 
 
 async def _upload_imgbb(data: bytes) -> str | None:
-    """upload image bytes to imgbb. returns url or none."""
-    try:
-        import base64
-        b64 = base64.b64encode(data).decode()
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                IMGBB_URL,
-                data={"key": IMGBB_KEY, "image": b64},
-                timeout=TIMEOUT,
-            ) as resp:
-                j = await resp.json()
-                if j.get("success"):
-                    return j["data"]["url"]
-                logger.warning(f"imgbb error: {j}")
-    except Exception as e:
-        logger.warning(f"imgbb upload failed: {e}")
+    """
+    upload image bytes to imgbb. returns url or none.
+    ✅ FIX 3: retry loop added (MAX_RETRIES attempts)
+    """
+    import base64
+    b64 = base64.b64encode(data).decode()
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    IMGBB_URL,
+                    data={"key": IMGBB_KEY, "image": b64},
+                    timeout=TIMEOUT,
+                ) as resp:
+                    j = await resp.json()
+                    if j.get("success"):
+                        return j["data"]["url"]
+                    logger.warning(f"imgbb error attempt {attempt}/{MAX_RETRIES}: {j}")
+        except asyncio.TimeoutError:
+            logger.warning(f"imgbb timeout attempt {attempt}/{MAX_RETRIES}")
+        except Exception as e:
+            logger.warning(f"imgbb upload failed attempt {attempt}/{MAX_RETRIES}: {e}")
+
+        if attempt < MAX_RETRIES:
+            await asyncio.sleep(RETRY_DELAY)
+
     return None
 
 
 async def upload_image(data: bytes, filename: str = "waifu.jpg") -> str | None:
     """
-    primary  -> catbox
-    fallback -> imgbb
+    primary  -> catbox  (with retries)
+    fallback -> imgbb   (with retries)
     returns hosted url or none if both fail.
     """
     url = await _upload_catbox(data, filename)
     if not url:
-        logger.info("catbox failed, trying imgbb...")
+        logger.info("catbox failed after retries, trying imgbb...")
         url = await _upload_imgbb(data)
     if not url:
-        logger.error("both catbox and imgbb failed.")
+        logger.error("both catbox and imgbb failed after all retries.")
     return url
 
 
@@ -232,9 +259,10 @@ async def process_waifu_message(client, msg) -> dict | None:
     full pipeline for one channel message:
       1. parse caption
       2. download photo
-      3. upload to catbox / imgbb
+      3. upload to catbox / imgbb  (retries included)
       4. save to mongodb
 
+    ✅ FIX 4: upload complete hone tak rukta hai — no premature return.
     returns saved waifu dict on success, none on any failure.
     approval flow is handled by the caller (auto.py).
     """
@@ -252,14 +280,18 @@ async def process_waifu_message(client, msg) -> dict | None:
     if not data:
         return None
 
+    # ✅ await karta hai jab tak upload complete na ho — caller block hoga yahan
+    logger.info(f"uploading image for msg {msg.id} ({fname})...")
     img_url = await upload_image(data, fname)
     if not img_url:
-        logger.error(f"image upload failed for msg {msg.id}")
+        logger.error(f"image upload failed for msg {msg.id} after all retries — skipping")
         return None
+
+    logger.info(f"upload done for msg {msg.id}: {img_url}")
 
     saved = await save_waifu(parsed, img_url, source_message_id=msg.id)
     if not saved:
         return None
 
     return {**parsed, "img_url": img_url, "source_message_id": msg.id}
-  
+    
