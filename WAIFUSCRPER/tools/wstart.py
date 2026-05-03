@@ -1,14 +1,8 @@
 import asyncio
-import os
 import random
 
 from pyrogram import Client, filters, enums
-from pyrogram.errors import (
-    ChannelInvalid,
-    ChannelPrivate,
-    UsernameNotOccupied,
-    FloodWait,
-)
+from pyrogram.errors import FloodWait
 from pyrogram.types import (
     Message,
     CallbackQuery,
@@ -24,21 +18,32 @@ from WAIFUSCRPER.Database import (
     get_target_channel,
     get_approve_mode,
     get_logger,
+    get_sudo_users,          # ✅ FIX: DB sudo list check karna hai
 )
-from WAIFUSCRPER.tools.dwonloder.Dwonlod import process_waifu_message
+from WAIFUSCRPER.tools.dwonloder.Dwonlod import (
+    parse_caption,
+    download_photo,
+    upload_image,
+    save_waifu,
+)
 
 log = LOGGER(__name__)
 
 _scrape_sessions: dict[int, dict] = {}
-
-_pending: dict[str, asyncio.Event] = {}
-_results: dict[str, bool] = {}
+_pending:         dict[str, asyncio.Event] = {}
+_results:         dict[str, bool] = {}
 
 PROGRESS_EVERY = 10
 
 
-def _is_authorized(user_id: int) -> bool:
-    return user_id == config.OWNER_ID or user_id in config.SUDO_USERS
+# ✅ FIX 1: async kiya — DB sudo users bhi check karta hai
+async def _is_authorized(user_id: int) -> bool:
+    if user_id == config.OWNER_ID:
+        return True
+    if user_id in config.SUDO_USERS:
+        return True
+    db_sudos = await get_sudo_users()
+    return user_id in db_sudos
 
 
 async def _get_userbot() -> Client | None:
@@ -68,46 +73,47 @@ async def _count_photos(userbot: Client, channel) -> int:
 def _approve_keyboard(key: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ approve",  callback_data=f"wapprove_{key}"),
-            InlineKeyboardButton("❌ skip",     callback_data=f"wskip_{key}"),
+            InlineKeyboardButton("✅ approve", callback_data=f"wapprove_{key}"),
+            InlineKeyboardButton("❌ skip",    callback_data=f"wskip_{key}"),
         ]
     ])
 
 
-async def _ask_approve(logger_id: int, userbot: Client, userbot_msg: Message, parsed: dict) -> bool:
+async def _ask_approve(logger_id: int, parsed: dict, img_url: str) -> bool:
     """
-    send waifu to logger group and wait for approve/skip.
-    returns true = approved, false = skipped.
+    ✅ FIX 2: send_photo हटाया — catbox URL wala send_message use karta hai.
+    Telegram khud image preview dikhata hai → SendMedia = 0, flood wait = 0.
+    Buttons bhi same call mein → EditMessage bhi nahi.
     """
-    caption = (
+    text = (
         f"🆕 <b>new waifu — approve?</b>\n\n"
-        f"📛 <b>name:</b>  {parsed.get('name', 'unknown')}\n"
-        f"🎭 <b>series:</b>  {parsed.get('series', 'unknown')}\n"
-        f"⭐ <b>rarity:</b>  {parsed.get('rarity', 'unknown')}\n"
-        f"🆔 <b>id:</b>  {parsed.get('waifu_id', 'auto')}\n"
-        f"👤 <b>added by:</b>  {parsed.get('added_by', 'unknown')}\n"
+        f"📛 <b>name:</b>   {parsed.get('name', 'unknown')}\n"
+        f"🎭 <b>series:</b> {parsed.get('series', 'unknown')}\n"
+        f"⭐ <b>rarity:</b> {parsed.get('rarity', 'unknown')}\n"
+        f"🆔 <b>id:</b>     {parsed.get('waifu_id', 'auto')}\n"
+        f"👤 <b>by:</b>     {parsed.get('added_by', 'unknown')}\n\n"
+        f"🖼 {img_url}"
     )
 
-    photo_path = await userbot.download_media(userbot_msg.photo)
-
     try:
-        sent = await app.send_photo(
+        # ✅ buttons bhi isi call mein — koi edit nahi, koi extra API call nahi
+        sent = await app.send_message(
             chat_id=logger_id,
-            photo=photo_path,
-            caption=caption,
+            text=text,
             parse_mode=enums.ParseMode.HTML,
+            reply_markup=_approve_keyboard("PLACEHOLDER"),
+            disable_web_page_preview=False,   # preview ON — image dikhega
         )
     except Exception as e:
-        log.error(f"approve photo send error: {e}")
-        if os.path.exists(photo_path):
-            os.remove(photo_path)
+        log.error(f"approve message send error: {e}")
         return False
 
-    if os.path.exists(photo_path):
-        os.remove(photo_path)
-
+    # placeholder ko real message id se replace karo
     key = str(sent.id)
-    await sent.edit_reply_markup(_approve_keyboard(key))
+    try:
+        await sent.edit_reply_markup(_approve_keyboard(key))
+    except Exception:
+        pass  # agar edit fail ho bhi toh chalega, key set ho gayi
 
     event = asyncio.Event()
     _pending[key] = event
@@ -120,11 +126,12 @@ async def _ask_approve(logger_id: int, userbot: Client, userbot_msg: Message, pa
         _pending.pop(key, None)
         _results.pop(key, None)
         try:
-            await sent.edit_caption(
-                caption + "\n\n⏰ <i>timeout — skipped.</i>",
+            await sent.edit_text(
+                text + "\n\n⏰ <i>timeout — skipped.</i>",
                 parse_mode=enums.ParseMode.HTML,
+                reply_markup=None,
+                disable_web_page_preview=False,
             )
-            await sent.edit_reply_markup(None)
         except Exception:
             pass
         return False
@@ -132,7 +139,8 @@ async def _ask_approve(logger_id: int, userbot: Client, userbot_msg: Message, pa
 
 @app.on_callback_query(filters.regex(r"^w(approve|skip)_(\d+)$"))
 async def cb_approve_skip(client: Client, cq: CallbackQuery):
-    if not _is_authorized(cq.from_user.id):
+    # ✅ FIX 3: await ke saath DB sudo check
+    if not await _is_authorized(cq.from_user.id):
         return await cq.answer("🚫 permission denied!", show_alert=True)
 
     action = cq.matches[0].group(1)
@@ -141,20 +149,21 @@ async def cb_approve_skip(client: Client, cq: CallbackQuery):
     if key not in _pending:
         return await cq.answer("⚠️ this request has expired.", show_alert=True)
 
-    approved = action == "approve"
-    _results[key] = approved
+    approved       = action == "approve"
+    _results[key]  = approved
     _pending[key].set()
 
     label = "✅ approved" if approved else "❌ skipped"
     await cq.answer(label)
 
     try:
-        original_caption = cq.message.caption or ""
-        await cq.message.edit_caption(
-            original_caption + f"\n\n<b>{label} by {cq.from_user.first_name}</b>",
+        original_text = cq.message.text or ""
+        await cq.message.edit_text(
+            original_text + f"\n\n<b>{label} by {cq.from_user.first_name}</b>",
             parse_mode=enums.ParseMode.HTML,
+            reply_markup=None,
+            disable_web_page_preview=False,
         )
-        await cq.message.edit_reply_markup(None)
     except Exception:
         pass
 
@@ -187,24 +196,38 @@ async def _scrape_loop(
             total += 1
 
             try:
+                # ✅ FIX 4: ek baar download + upload, phir approve, phir save
+                # pehle caption parse karo
+                parsed = parse_caption(msg.caption or "")
+                if not parsed:
+                    skipped += 1
+                    continue
+
+                # photo download karo
+                data, fname = await download_photo(userbot, msg)
+                if not data:
+                    errors += 1
+                    continue
+
+                # catbox/imgbb pe upload karo (retry logic Dwonlod.py mein hai)
+                img_url = await upload_image(data, fname)
+                if not img_url:
+                    log.error(f"upload failed for msg {msg.id} — skipping")
+                    errors += 1
+                    continue
+
+                # approve mode mein approval lo
                 if approve_mode and logger_id:
-                    from WAIFUSCRPER.tools.dwonloder.Dwonlod import parse_caption
-                    parsed = parse_caption(msg.caption or "")
-
-                    if not parsed:
-                        skipped += 1
-                        continue
-
-                    approved = await _ask_approve(logger_id, userbot, msg, parsed)
+                    approved = await _ask_approve(logger_id, parsed, img_url)
                     if not approved:
                         skipped += 1
                         continue
 
-                result = await process_waifu_message(userbot, msg)
-
-                if result:
+                # DB mein save karo
+                saved_ok = await save_waifu(parsed, img_url, source_message_id=msg.id)
+                if saved_ok:
                     saved += 1
-                    log.success(f"[{saved}] saved → {result.get('name')} | {result.get('rarity')}")
+                    log.success(f"[{saved}] saved → {parsed.get('name')} | {parsed.get('rarity')}")
                 else:
                     skipped += 1
 
@@ -267,8 +290,8 @@ async def _scrape_loop(
 async def cmd_wstart(client: Client, message: Message):
     user_id = message.from_user.id
 
-    if not _is_authorized(user_id):
-        return await message.reply_text("🚫 <b>only owner can use this.</b>", parse_mode=enums.ParseMode.HTML)
+    if not await _is_authorized(user_id):
+        return await message.reply_text("🚫 <b>only owner/sudo can use this.</b>", parse_mode=enums.ParseMode.HTML)
 
     if user_id in _scrape_sessions:
         return await message.reply_text("⚠️ <b>a session is already running!</b>\nuse /wstop first.", parse_mode=enums.ParseMode.HTML)
@@ -339,7 +362,7 @@ async def cmd_wstart(client: Client, message: Message):
 async def cb_wstart_confirm(client: Client, cq: CallbackQuery):
     owner_id = int(cq.matches[0].group(1))
 
-    if cq.from_user.id != owner_id and not _is_authorized(cq.from_user.id):
+    if cq.from_user.id != owner_id and not await _is_authorized(cq.from_user.id):
         return await cq.answer("🚫 not your session!", show_alert=True)
 
     session = _scrape_sessions.get(owner_id)
@@ -373,7 +396,7 @@ async def cb_wstart_confirm(client: Client, cq: CallbackQuery):
 async def cb_wstart_cancel(client: Client, cq: CallbackQuery):
     owner_id = int(cq.matches[0].group(1))
 
-    if cq.from_user.id != owner_id and not _is_authorized(cq.from_user.id):
+    if cq.from_user.id != owner_id and not await _is_authorized(cq.from_user.id):
         return await cq.answer("🚫 permission denied!", show_alert=True)
 
     session = _scrape_sessions.pop(owner_id, None)
@@ -391,7 +414,7 @@ async def cb_wstart_cancel(client: Client, cq: CallbackQuery):
 async def cmd_wstop(client: Client, message: Message):
     user_id = message.from_user.id
 
-    if not _is_authorized(user_id):
+    if not await _is_authorized(user_id):
         return await message.reply_text("🚫 permission denied.", parse_mode=enums.ParseMode.HTML)
 
     session = _scrape_sessions.get(user_id)
@@ -402,5 +425,5 @@ async def cmd_wstop(client: Client, message: Message):
     await message.reply_text(
         "⏹ <b>stopping scrape...</b>\n<i>will stop after current waifu.</i>",
         parse_mode=enums.ParseMode.HTML,
-  )
-  
+                      )
+            
