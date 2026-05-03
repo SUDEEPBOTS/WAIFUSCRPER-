@@ -20,6 +20,8 @@ from WAIFUSCRPER.Database import (
     get_logger,
     get_sudo_users,
     waifu_exists,
+    add_rejected_waifu,
+    is_rejected_waifu,
 )
 from WAIFUSCRPER.tools.dwonloder.Dwonlod import (
     parse_caption,
@@ -203,10 +205,14 @@ async def _scrape_loop(
                     skipped += 1
                     continue
 
-                # ✅ step 2: early duplicate check (download/upload waste nahi)
+                # ✅ step 2: early duplicate + rejected check (download/upload waste nahi)
                 if parsed.get("waifu_id"):
                     if await waifu_exists(parsed["waifu_id"]):
                         log.info(f"duplicate early skip → {parsed['waifu_id']} ({parsed['name']})")
+                        skipped += 1
+                        continue
+                    if await is_rejected_waifu(parsed["waifu_id"]):
+                        log.info(f"rejected early skip → {parsed['waifu_id']} ({parsed['name']})")
                         skipped += 1
                         continue
 
@@ -227,6 +233,10 @@ async def _scrape_loop(
                 if approve_mode and logger_id:
                     approved = await _ask_approve(logger_id, parsed, img_url)
                     if not approved:
+                        # ✅ reject DB mein save karo taaki dubara na aaye
+                        if parsed.get("waifu_id"):
+                            await add_rejected_waifu(parsed["waifu_id"])
+                            log.info(f"rejected saved → {parsed['waifu_id']} ({parsed['name']})")
                         skipped += 1
                         continue
 
@@ -432,5 +442,5 @@ async def cmd_wstop(client: Client, message: Message):
     await message.reply_text(
         "⏹ <b>𝚂𝚝𝚘𝚙𝚙𝚒𝚗𝚐 𝚂𝚌𝚛𝚊𝚙𝚎...</b>\n<i>will stop after current waifu.</i>",
         parse_mode=enums.ParseMode.HTML,
-            )
+    )
     
