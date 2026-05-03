@@ -16,7 +16,7 @@ os.makedirs("logs", exist_ok=True)
 
 async def init():
     log.info("━" * 45)
-    log.info("  ᴡᴀɪꜰᴜsᴄʀᴘᴇʀ — sᴛᴀʀᴛɪɴɢ ᴜᴘ...")
+    log.info("  ᴡᴀιғᴜsᴄʀᴘєʀ — sᴛᴀʀᴛιηɢ ᴜᴘ...")
     log.info("━" * 45)
 
     missing = []
@@ -32,38 +32,37 @@ async def init():
 
     try:
         config.SUDO_USERS = await get_sudo_users()
-        log.info(f"sᴜᴅᴏ ᴜsᴇʀs ʟᴏᴀᴅᴇᴅ: {len(config.SUDO_USERS)}")
+        log.info(f"sᴜᴅᴏ ᴜsєʀs ʟᴏᴀᴅєᴅ: {len(config.SUDO_USERS)}")
     except Exception as e:
-        log.warning(f"Could not load sudo users: {e}")
+        log.warning(f"could not load sudo users: {e}")
         config.SUDO_USERS = []
 
-    # YUKIWAFUS WALA FAIL-PROOF CUSTOM LOADER 🔥
     for module in ALL_MODULES:
         try:
             importlib.import_module(module, package="WAIFUSCRPER.tools")
-            log.info(f"  ✓ Loaded: {module}")
+            log.info(f"  ✓ loaded: {module}")
         except Exception as e:
-            log.error(f"  ✗ Failed to load {module}: {e}")
+            log.error(f"  ✗ failed to load {module}: {e}")
 
     await app.start()
     me = await app.get_me()
-    log.info(f"ʙᴏᴛ sᴛᴀʀᴛᴇᴅ ✅  @{me.username}  (ID: {me.id})")
-    
+    log.info(f"ʙᴏᴛ sᴛᴀʀᴛєᴅ ✅  @{me.username}  (id: {me.id})")
+
     total_handlers = sum(len(v) for v in app.dispatcher.groups.values())
-    log.info(f"ʜᴀɴᴅʟᴇʀs: {total_handlers}")
+    log.info(f"ʜᴀηᴅʟєʀs ʟᴏᴀᴅєᴅ: {total_handlers}")
 
     log.info("━" * 45)
-    log.info("  ᴡᴀɪꜰᴜsᴄʀᴘᴇʀ ɪs ʀᴜɴɴɪɴɢ 🚀")
+    log.info("  ᴡᴀιғᴜsᴄʀᴘєʀ ιs ʀᴜηηιηɢ 🚀")
     log.info("━" * 45)
 
     await idle()
-    
+
     try:
         await app.stop()
     except Exception:
-        pass # Ignored Python 3.12 strict shutdown crash
-        
-    log.info("ᴡᴀɪꜰᴜsᴄʀᴘᴇʀ sᴛᴏᴘᴘᴇᴅ. ɢᴏᴏᴅʙʏᴇ 👋")
+        pass
+
+    log.info("ᴡᴀιғᴜsᴄʀᴘєʀ sᴛᴏᴘᴘєᴅ. ɢᴏᴏᴅʙʏє 👋")
 
 
 if __name__ == "__main__":
@@ -72,7 +71,7 @@ if __name__ == "__main__":
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-    
+
     try:
         loop.run_until_complete(init())
     except KeyboardInterrupt:
