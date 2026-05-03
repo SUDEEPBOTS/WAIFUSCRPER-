@@ -18,7 +18,8 @@ from WAIFUSCRPER.Database import (
     get_target_channel,
     get_approve_mode,
     get_logger,
-    get_sudo_users,          # ✅ FIX: DB sudo list check karna hai
+    get_sudo_users,
+    waifu_exists,
 )
 from WAIFUSCRPER.tools.dwonloder.Dwonlod import (
     parse_caption,
@@ -36,7 +37,6 @@ _results:         dict[str, bool] = {}
 PROGRESS_EVERY = 10
 
 
-# ✅ FIX 1: async kiya — DB sudo users bhi check karta hai
 async def _is_authorized(user_id: int) -> bool:
     if user_id == config.OWNER_ID:
         return True
@@ -50,7 +50,6 @@ async def _get_userbot() -> Client | None:
     session_string = await get_string_session()
     if not session_string:
         return None
-
     userbot = Client(
         name="userbot_scraper",
         api_id=config.API_ID,
@@ -70,50 +69,53 @@ async def _count_photos(userbot: Client, channel) -> int:
     return count
 
 
-def _approve_keyboard(key: str) -> InlineKeyboardMarkup:
+def _approve_keyboard(key: str, img_url: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ approve", callback_data=f"wapprove_{key}"),
-            InlineKeyboardButton("❌ skip",    callback_data=f"wskip_{key}"),
-        ]
+            InlineKeyboardButton("✅ 𝐀ᴘᴘʀᴏᴠᴇ", callback_data=f"wapprove_{key}"),
+            InlineKeyboardButton("❌ 𝚂ᴋɪᴘ",    callback_data=f"wskip_{key}"),
+        ],
+        [
+            # view button — browser mein khulta hai
+            InlineKeyboardButton("🖼 𝚅𝚒𝚎𝚠 𝚆𝚊𝚒𝚏𝚞", url=img_url),
+        ],
     ])
 
 
 async def _ask_approve(logger_id: int, parsed: dict, img_url: str) -> bool:
     """
-    ✅ FIX 2: send_photo हटाया — catbox URL wala send_message use karta hai.
-    Telegram khud image preview dikhata hai → SendMedia = 0, flood wait = 0.
-    Buttons bhi same call mein → EditMessage bhi nahi.
+    send_message with plain catbox URL at top → Telegram auto preview (image).
+    SendMedia = 0, no extra EditMessage for buttons = fast, no flood.
     """
     text = (
-        f"🆕 <b>new waifu — approve?</b>\n\n"
-        f"📛 <b>name:</b>   {parsed.get('name', 'unknown')}\n"
-        f"🎭 <b>series:</b> {parsed.get('series', 'unknown')}\n"
-        f"⭐ <b>rarity:</b> {parsed.get('rarity', 'unknown')}\n"
-        f"🆔 <b>id:</b>     {parsed.get('waifu_id', 'auto')}\n"
-        f"👤 <b>by:</b>     {parsed.get('added_by', 'unknown')}\n\n"
-        f"🖼 {img_url}"
+        f"{img_url}\n\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"🆕 <b>𝙽𝚎𝚠 𝚆𝚊𝚒𝚏𝚞 — 𝙰𝚙𝚙𝚛𝚘𝚟𝚎?</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"📛 <b>𝙽𝚊𝚖𝚎 :</b>   {parsed.get('name', 'unknown')}\n"
+        f"🎭 <b>𝚂𝚎𝚛𝚒𝚎𝚜 :</b> {parsed.get('series', 'unknown')}\n"
+        f"⭐ <b>𝚁𝚊𝚛𝚒𝚝𝚢 :</b> {parsed.get('rarity', 'unknown')}\n"
+        f"🆔 <b>𝙸𝙳 :</b>     {parsed.get('waifu_id', 'auto')}\n"
+        f"👤 <b>𝙱𝚢 :</b>     {parsed.get('added_by', 'unknown')}\n"
     )
 
     try:
-        # ✅ buttons bhi isi call mein — koi edit nahi, koi extra API call nahi
         sent = await app.send_message(
             chat_id=logger_id,
             text=text,
             parse_mode=enums.ParseMode.HTML,
-            reply_markup=_approve_keyboard("PLACEHOLDER"),
-            disable_web_page_preview=False,   # preview ON — image dikhega
+            reply_markup=_approve_keyboard("PLACEHOLDER", img_url),
+            disable_web_page_preview=False,
         )
     except Exception as e:
         log.error(f"approve message send error: {e}")
         return False
 
-    # placeholder ko real message id se replace karo
     key = str(sent.id)
     try:
-        await sent.edit_reply_markup(_approve_keyboard(key))
+        await sent.edit_reply_markup(_approve_keyboard(key, img_url))
     except Exception:
-        pass  # agar edit fail ho bhi toh chalega, key set ho gayi
+        pass
 
     event = asyncio.Event()
     _pending[key] = event
@@ -127,7 +129,7 @@ async def _ask_approve(logger_id: int, parsed: dict, img_url: str) -> bool:
         _results.pop(key, None)
         try:
             await sent.edit_text(
-                text + "\n\n⏰ <i>timeout — skipped.</i>",
+                text + "\n⏰ <i>𝚃𝚒𝚖𝚎𝚘𝚞𝚝 — 𝚂𝚔𝚒𝚙𝚙𝚎𝚍.</i>",
                 parse_mode=enums.ParseMode.HTML,
                 reply_markup=None,
                 disable_web_page_preview=False,
@@ -139,27 +141,26 @@ async def _ask_approve(logger_id: int, parsed: dict, img_url: str) -> bool:
 
 @app.on_callback_query(filters.regex(r"^w(approve|skip)_(\d+)$"))
 async def cb_approve_skip(client: Client, cq: CallbackQuery):
-    # ✅ FIX 3: await ke saath DB sudo check
     if not await _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 permission denied!", show_alert=True)
+        return await cq.answer("🚫 𝙿𝚎𝚛𝚖𝚒𝚜𝚜𝚒𝚘𝚗 𝙳𝚎𝚗𝚒𝚎𝚍!", show_alert=True)
 
     action = cq.matches[0].group(1)
     key    = cq.matches[0].group(2)
 
     if key not in _pending:
-        return await cq.answer("⚠️ this request has expired.", show_alert=True)
+        return await cq.answer("⚠️ 𝚁𝚎𝚚𝚞𝚎𝚜𝚝 𝙴𝚡𝚙𝚒𝚛𝚎𝚍.", show_alert=True)
 
-    approved       = action == "approve"
-    _results[key]  = approved
+    approved      = action == "approve"
+    _results[key] = approved
     _pending[key].set()
 
-    label = "✅ approved" if approved else "❌ skipped"
+    label = "✅ 𝙰𝚙𝚙𝚛𝚘𝚟𝚎𝚍" if approved else "❌ 𝚂𝚔𝚒𝚙𝚙𝚎𝚍"
     await cq.answer(label)
 
     try:
         original_text = cq.message.text or ""
         await cq.message.edit_text(
-            original_text + f"\n\n<b>{label} by {cq.from_user.first_name}</b>",
+            original_text + f"\n\n<b>{label} 𝚋𝚢 {cq.from_user.first_name}</b>",
             parse_mode=enums.ParseMode.HTML,
             reply_markup=None,
             disable_web_page_preview=False,
@@ -196,34 +197,40 @@ async def _scrape_loop(
             total += 1
 
             try:
-                # ✅ FIX 4: ek baar download + upload, phir approve, phir save
-                # pehle caption parse karo
+                # step 1: caption parse
                 parsed = parse_caption(msg.caption or "")
                 if not parsed:
                     skipped += 1
                     continue
 
-                # photo download karo
+                # ✅ step 2: early duplicate check (download/upload waste nahi)
+                if parsed.get("waifu_id"):
+                    if await waifu_exists(parsed["waifu_id"]):
+                        log.info(f"duplicate early skip → {parsed['waifu_id']} ({parsed['name']})")
+                        skipped += 1
+                        continue
+
+                # step 3: photo download
                 data, fname = await download_photo(userbot, msg)
                 if not data:
                     errors += 1
                     continue
 
-                # catbox/imgbb pe upload karo (retry logic Dwonlod.py mein hai)
+                # step 4: catbox/imgbb upload (retry logic Dwonlod.py mein)
                 img_url = await upload_image(data, fname)
                 if not img_url:
                     log.error(f"upload failed for msg {msg.id} — skipping")
                     errors += 1
                     continue
 
-                # approve mode mein approval lo
+                # step 5: approve (agar mode on hai)
                 if approve_mode and logger_id:
                     approved = await _ask_approve(logger_id, parsed, img_url)
                     if not approved:
                         skipped += 1
                         continue
 
-                # DB mein save karo
+                # step 6: DB save
                 saved_ok = await save_waifu(parsed, img_url, source_message_id=msg.id)
                 if saved_ok:
                     saved += 1
@@ -244,11 +251,11 @@ async def _scrape_loop(
             if processed % PROGRESS_EVERY == 0:
                 try:
                     await status_msg.edit_text(
-                        f"⏳ <b>scraping in progress...</b>\n\n"
-                        f"📊 <b>processed:</b>  {processed}\n"
-                        f"✅ <b>saved:</b>      {saved}\n"
-                        f"⏭ <b>skipped:</b>    {skipped}\n"
-                        f"❌ <b>errors:</b>     {errors}\n\n"
+                        f"⏳ <b>𝚂𝚌𝚛𝚊𝚙𝚒𝚗𝚐 𝚒𝚗 𝙿𝚛𝚘𝚐𝚛𝚎𝚜𝚜...</b>\n\n"
+                        f"📊 <b>𝙿𝚛𝚘𝚌𝚎𝚜𝚜𝚎𝚍 :</b>  {processed}\n"
+                        f"✅ <b>𝚂𝚊𝚟𝚎𝚍 :</b>      {saved}\n"
+                        f"⏭ <b>𝚂𝚔𝚒𝚙𝚙𝚎𝚍 :</b>    {skipped}\n"
+                        f"❌ <b>𝙴𝚛𝚛𝚘𝚛𝚜 :</b>     {errors}\n\n"
                         f"<i>use /wstop to stop.</i>",
                         parse_mode=enums.ParseMode.HTML,
                     )
@@ -272,11 +279,11 @@ async def _scrape_loop(
 
         try:
             await status_msg.edit_text(
-                f"🎉 <b>scraping complete!</b>\n\n"
-                f"📊 <b>total scanned:</b>  {processed}\n"
-                f"✅ <b>saved:</b>          {saved}\n"
-                f"⏭ <b>skipped:</b>        {skipped}\n"
-                f"❌ <b>errors:</b>         {errors}\n\n"
+                f"🎉 <b>𝚂𝚌𝚛𝚊𝚙𝚒𝚗𝚐 𝙲𝚘𝚖𝚙𝚕𝚎𝚝𝚎!</b>\n\n"
+                f"📊 <b>𝚃𝚘𝚝𝚊𝚕 𝚂𝚌𝚊𝚗𝚗𝚎𝚍 :</b>  {processed}\n"
+                f"✅ <b>𝚂𝚊𝚟𝚎𝚍 :</b>          {saved}\n"
+                f"⏭ <b>𝚂𝚔𝚒𝚙𝚙𝚎𝚍 :</b>        {skipped}\n"
+                f"❌ <b>𝙴𝚛𝚛𝚘𝚛𝚜 :</b>         {errors}\n\n"
                 f"<i>{saved} new waifus added to mongodb.</i>",
                 parse_mode=enums.ParseMode.HTML,
             )
@@ -291,32 +298,32 @@ async def cmd_wstart(client: Client, message: Message):
     user_id = message.from_user.id
 
     if not await _is_authorized(user_id):
-        return await message.reply_text("🚫 <b>only owner/sudo can use this.</b>", parse_mode=enums.ParseMode.HTML)
+        return await message.reply_text("🚫 <b>𝙾𝚗𝚕𝚢 𝙾𝚠𝚗𝚎𝚛/𝚂𝚞𝚍𝚘 𝚌𝚊𝚗 𝚞𝚜𝚎 𝚝𝚑𝚒𝚜.</b>", parse_mode=enums.ParseMode.HTML)
 
     if user_id in _scrape_sessions:
-        return await message.reply_text("⚠️ <b>a session is already running!</b>\nuse /wstop first.", parse_mode=enums.ParseMode.HTML)
+        return await message.reply_text("⚠️ <b>𝙰 𝚜𝚎𝚜𝚜𝚒𝚘𝚗 𝚒𝚜 𝚊𝚕𝚛𝚎𝚊𝚍𝚢 𝚛𝚞𝚗𝚗𝚒𝚗𝚐!</b>\nuse /wstop first.", parse_mode=enums.ParseMode.HTML)
 
     wait = await message.reply_text("🔍 checking config...", parse_mode=enums.ParseMode.HTML)
 
     target_channel = await get_target_channel()
     if not target_channel:
-        return await wait.edit_text("❌ <b>target channel not set!</b>", parse_mode=enums.ParseMode.HTML)
+        return await wait.edit_text("❌ <b>𝚃𝚊𝚛𝚐𝚎𝚝 𝚌𝚑𝚊𝚗𝚗𝚎𝚕 𝚗𝚘𝚝 𝚜𝚎𝚝!</b>", parse_mode=enums.ParseMode.HTML)
 
     string_session = await get_string_session()
     if not string_session:
-        return await wait.edit_text("❌ <b>string session not set!</b>", parse_mode=enums.ParseMode.HTML)
+        return await wait.edit_text("❌ <b>𝚂𝚝𝚛𝚒𝚗𝚐 𝚜𝚎𝚜𝚜𝚒𝚘𝚗 𝚗𝚘𝚝 𝚜𝚎𝚝!</b>", parse_mode=enums.ParseMode.HTML)
 
     approve_mode = await get_approve_mode()
     logger_id    = await get_logger() if approve_mode else None
 
     if approve_mode and not logger_id:
-        return await wait.edit_text("❌ <b>logger id not set!</b>", parse_mode=enums.ParseMode.HTML)
+        return await wait.edit_text("❌ <b>𝙻𝚘𝚐𝚐𝚎𝚛 𝙸𝙳 𝚗𝚘𝚝 𝚜𝚎𝚝!</b>", parse_mode=enums.ParseMode.HTML)
 
     await wait.edit_text("🔌 connecting userbot...", parse_mode=enums.ParseMode.HTML)
 
     userbot = await _get_userbot()
     if not userbot:
-        return await wait.edit_text("❌ <b>userbot failed to connect.</b>", parse_mode=enums.ParseMode.HTML)
+        return await wait.edit_text("❌ <b>𝚄𝚜𝚎𝚛𝚋𝚘𝚝 𝚏𝚊𝚒𝚕𝚎𝚍 𝚝𝚘 𝚌𝚘𝚗𝚗𝚎𝚌𝚝.</b>", parse_mode=enums.ParseMode.HTML)
 
     await wait.edit_text("📡 scanning channel and counting photos...", parse_mode=enums.ParseMode.HTML)
 
@@ -333,15 +340,15 @@ async def cmd_wstart(client: Client, message: Message):
         return await wait.edit_text(f"❌ <b>count error:</b> <code>{e}</code>", parse_mode=enums.ParseMode.HTML)
 
     await wait.edit_text(
-        f"📋 <b>channel info</b>\n\n"
-        f"📣 <b>channel:</b>  {chat.title}\n"
-        f"🖼 <b>waifu photos:</b>  <code>{photo_count}</code>\n"
-        f"✅ <b>approve mode:</b>  {'on 🟢' if approve_mode else 'off 🔴'}\n\n"
-        f"<b>start scraping?</b>",
+        f"📋 <b>𝙲𝚑𝚊𝚗𝚗𝚎𝚕 𝙸𝚗𝚏𝚘</b>\n\n"
+        f"📣 <b>𝙲𝚑𝚊𝚗𝚗𝚎𝚕 :</b>       {chat.title}\n"
+        f"🖼 <b>𝚆𝚊𝚒𝚏𝚞 𝙿𝚑𝚘𝚝𝚘𝚜 :</b>  <code>{photo_count}</code>\n"
+        f"✅ <b>𝙰𝚙𝚙𝚛𝚘𝚟𝚎 𝙼𝚘𝚍𝚎 :</b>  {'on 🟢' if approve_mode else 'off 🔴'}\n\n"
+        f"<b>𝚂𝚝𝚊𝚛𝚝 𝚜𝚌𝚛𝚊𝚙𝚒𝚗𝚐?</b>",
         reply_markup=InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("✅ yes, start!", callback_data=f"wstart_confirm_{user_id}"),
-                InlineKeyboardButton("❌ no",          callback_data=f"wstart_cancel_{user_id}"),
+                InlineKeyboardButton("✅ 𝚈𝚎𝚜, 𝚂𝚝𝚊𝚛𝚝!", callback_data=f"wstart_confirm_{user_id}"),
+                InlineKeyboardButton("❌ 𝙽𝚘",          callback_data=f"wstart_cancel_{user_id}"),
             ]
         ]),
         parse_mode=enums.ParseMode.HTML,
@@ -363,18 +370,18 @@ async def cb_wstart_confirm(client: Client, cq: CallbackQuery):
     owner_id = int(cq.matches[0].group(1))
 
     if cq.from_user.id != owner_id and not await _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 not your session!", show_alert=True)
+        return await cq.answer("🚫 𝙽𝚘𝚝 𝚢𝚘𝚞𝚛 𝚜𝚎𝚜𝚜𝚒𝚘𝚗!", show_alert=True)
 
     session = _scrape_sessions.get(owner_id)
     if not session:
-        return await cq.answer("⚠️ session expired.", show_alert=True)
+        return await cq.answer("⚠️ 𝚂𝚎𝚜𝚜𝚒𝚘𝚗 𝚎𝚡𝚙𝚒𝚛𝚎𝚍.", show_alert=True)
 
-    await cq.answer("🚀 starting!")
+    await cq.answer("🚀 Starting!")
     session["running"] = True
     status_msg = session["status_msg"]
 
     await status_msg.edit_text(
-        "🚀 <b>scraping started!</b>\n⏳ progress will appear here...\n<i>use /wstop to stop.</i>",
+        "🚀 <b>𝚂𝚌𝚛𝚊𝚙𝚒𝚗𝚐 𝚂𝚝𝚊𝚛𝚝𝚎𝚍!</b>\n⏳ progress will appear here...\n<i>use /wstop to stop.</i>",
         reply_markup=None,
         parse_mode=enums.ParseMode.HTML,
     )
@@ -397,7 +404,7 @@ async def cb_wstart_cancel(client: Client, cq: CallbackQuery):
     owner_id = int(cq.matches[0].group(1))
 
     if cq.from_user.id != owner_id and not await _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 permission denied!", show_alert=True)
+        return await cq.answer("🚫 𝙿𝚎𝚛𝚖𝚒𝚜𝚜𝚒𝚘𝚗 𝙳𝚎𝚗𝚒𝚎𝚍!", show_alert=True)
 
     session = _scrape_sessions.pop(owner_id, None)
     if session:
@@ -406,8 +413,8 @@ async def cb_wstart_cancel(client: Client, cq: CallbackQuery):
         except Exception:
             pass
 
-    await cq.answer("❌ cancelled!")
-    await cq.message.edit_text("❌ <b>scraping cancelled.</b>", parse_mode=enums.ParseMode.HTML)
+    await cq.answer("❌ Cancelled!")
+    await cq.message.edit_text("❌ <b>𝚂𝚌𝚛𝚊𝚙𝚒𝚗𝚐 𝙲𝚊𝚗𝚌𝚎𝚕𝚕𝚎𝚍.</b>", parse_mode=enums.ParseMode.HTML)
 
 
 @app.on_message(filters.command("wstop") & filters.private)
@@ -415,15 +422,15 @@ async def cmd_wstop(client: Client, message: Message):
     user_id = message.from_user.id
 
     if not await _is_authorized(user_id):
-        return await message.reply_text("🚫 permission denied.", parse_mode=enums.ParseMode.HTML)
+        return await message.reply_text("🚫 𝙿𝚎𝚛𝚖𝚒𝚜𝚜𝚒𝚘𝚗 𝙳𝚎𝚗𝚒𝚎𝚍.", parse_mode=enums.ParseMode.HTML)
 
     session = _scrape_sessions.get(user_id)
     if not session:
-        return await message.reply_text("⚠️ <b>no active scrape session found.</b>", parse_mode=enums.ParseMode.HTML)
+        return await message.reply_text("⚠️ <b>𝙽𝚘 𝚊𝚌𝚝𝚒𝚟𝚎 𝚜𝚎𝚜𝚜𝚒𝚘𝚗 𝚏𝚘𝚞𝚗𝚍.</b>", parse_mode=enums.ParseMode.HTML)
 
     session["running"] = False
     await message.reply_text(
-        "⏹ <b>stopping scrape...</b>\n<i>will stop after current waifu.</i>",
+        "⏹ <b>𝚂𝚝𝚘𝚙𝚙𝚒𝚗𝚐 𝚂𝚌𝚛𝚊𝚙𝚎...</b>\n<i>will stop after current waifu.</i>",
         parse_mode=enums.ParseMode.HTML,
-                      )
-            
+            )
+    
