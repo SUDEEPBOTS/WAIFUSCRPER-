@@ -1,11 +1,11 @@
 """
 WAIFUSCRPER — Database/__init__.py
-Re-exports everything from MongoDB.py so rest of the project
+Re-exports everything from Mangodb.py so rest of the project
 can import cleanly:
     from WAIFUSCRPER.Database import waifu_exists, add_sudo, ...
 """
 
-from WAIFUSCRPER.Database.MongoDB import (
+from WAIFUSCRPER.Database.Mangodb import (
     # ── Connection ───────────────────────────────
     get_collection,
 
@@ -81,4 +81,3 @@ __all__ = [
     "set_keyboard_message",
     "get_keyboard_message",
 ]
-
