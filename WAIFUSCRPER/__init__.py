@@ -1,6 +1,7 @@
 """
 WAIFUSCRPER — __init__.py
-Pyrogram Client (bot) initialization.
+Pyrogram Client initialization.
+Plugins are imported HERE so decorators register before app.start()
 """
 
 from pyrogram import Client
@@ -20,3 +21,14 @@ app = Client(
 
 logger.info("ᴘʏʀᴏɢʀᴀᴍ ᴄʟɪᴇɴᴛ ɪɴɪᴛɪᴀʟɪᴢᴇᴅ ✅")
 
+# ── Import all plugins HERE so @app.on_message decorators fire before start() ──
+import importlib
+from WAIFUSCRPER.tools import ALL_MODULES
+
+for _mod in ALL_MODULES:
+    try:
+        importlib.import_module(_mod, package="WAIFUSCRPER.tools")
+        logger.info(f"  ✅  {_mod}")
+    except Exception as e:
+        logger.error(f"  ❌  {_mod}  →  {e}")
+        
