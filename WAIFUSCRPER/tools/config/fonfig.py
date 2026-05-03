@@ -1,24 +1,6 @@
-from pyrogram import enums
-"""
-WAIFUSCRPER — tools/config/Config.py
-Full config panel with 3 pages of buttons.
-
-Page 1 (Setup):
-  Set Logger | Set Approve Mode | Set String Session
-  Set Caption Keyword | Set Collection Name
-
-Page 2 (Remove / Target):
-  Remove String Session | Remove Logger | Remove Collection Name
-  Remove Waifu by ID | Set Target Channel | Fetch All Waifus
-  Set Keyboard Message
-
-Page 3 (Auto Fetch):
-  Auto Fetch New Waifus ON/OFF | Back to Home
-"""
-
 import asyncio
 
-from pyrogram import Client, filters
+from pyrogram import Client, filters, enums
 from pyrogram.types import (
     Message,
     CallbackQuery,
@@ -42,9 +24,6 @@ from WAIFUSCRPER.Database import (
 
 log = LOGGER(__name__)
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  AUTH CHECK
-# ══════════════════════════════════════════════════════════════════════════════
 
 def _is_owner(user_id: int) -> bool:
     return user_id == config.OWNER_ID
@@ -53,26 +32,22 @@ def _is_authorized(user_id: int) -> bool:
     return user_id == config.OWNER_ID or user_id in config.SUDO_USERS
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  KEYBOARDS
-# ══════════════════════════════════════════════════════════════════════════════
-
 def _kb_p1() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("📋 Set Logger",          callback_data="cfg_set_logger"),
-            InlineKeyboardButton("✅ Set Approve Mode",    callback_data="cfg_set_approve"),
+            InlineKeyboardButton("˹ 𝐒єᴛ 𝐋ᴏɢɢєʀ ˼",         callback_data="cfg_set_logger"),
+            InlineKeyboardButton("˹ 𝐀ᴘᴘʀᴏᴠє 𝐌ᴏᴅє ˼",        callback_data="cfg_set_approve"),
         ],
         [
-            InlineKeyboardButton("🔐 Set String Session",  callback_data="cfg_set_session"),
+            InlineKeyboardButton("˹ 𝐒єᴛ 𝐒єssιᴏη ˼",         callback_data="cfg_set_session"),
         ],
         [
-            InlineKeyboardButton("🔑 Set Caption Keyword", callback_data="cfg_set_keyword"),
-            InlineKeyboardButton("🗂 Set Collection",      callback_data="cfg_set_collection"),
+            InlineKeyboardButton("˹ 𝐂ᴀᴘᴛιᴏη 𝐊єʏᴡᴏʀᴅ ˼",     callback_data="cfg_set_keyword"),
+            InlineKeyboardButton("˹ 𝐂ᴏʟʟєᴄᴛιᴏη ˼",           callback_data="cfg_set_collection"),
         ],
         [
-            InlineKeyboardButton("🏠 Home", callback_data="menu_home"),
-            InlineKeyboardButton("Next ▶️", callback_data="menu_config_p2"),
+            InlineKeyboardButton("˹ 𝚮ᴏϻє ˼",                 callback_data="menu_home"),
+            InlineKeyboardButton("˹ 𝐍єхᴛ ▶️ ˼",              callback_data="menu_config_p2"),
         ],
     ])
 
@@ -80,24 +55,24 @@ def _kb_p1() -> InlineKeyboardMarkup:
 def _kb_p2() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("🗑 Remove Session",      callback_data="cfg_rm_session"),
-            InlineKeyboardButton("🗑 Remove Logger",       callback_data="cfg_rm_logger"),
+            InlineKeyboardButton("˹ 𝐑ϻ 𝐒єssιᴏη ˼",           callback_data="cfg_rm_session"),
+            InlineKeyboardButton("˹ 𝐑ϻ 𝐋ᴏɢɢєʀ ˼",            callback_data="cfg_rm_logger"),
         ],
         [
-            InlineKeyboardButton("🗑 Remove Collection",   callback_data="cfg_rm_collection"),
-            InlineKeyboardButton("🗑 Remove Waifu by ID",  callback_data="cfg_rm_waifu"),
+            InlineKeyboardButton("˹ 𝐑ϻ 𝐂ᴏʟʟєᴄᴛιᴏη ˼",        callback_data="cfg_rm_collection"),
+            InlineKeyboardButton("˹ 𝐑ϻ 𝚮ᴀιғᴜ ˼",              callback_data="cfg_rm_waifu"),
         ],
         [
-            InlineKeyboardButton("📡 Set Target Channel",  callback_data="cfg_set_target"),
-            InlineKeyboardButton("📥 Fetch All Waifus",    callback_data="cfg_fetch_all"),
+            InlineKeyboardButton("˹ 𝐓ᴀʀɢєᴛ 𝐂нᴀηηєʟ ˼",       callback_data="cfg_set_target"),
+            InlineKeyboardButton("˹ 𝐅єᴛᴄн 𝐀ʟʟ ˼",             callback_data="cfg_fetch_all"),
         ],
         [
-            InlineKeyboardButton("💬 Set Keyboard Msg",    callback_data="cfg_set_keymsg"),
+            InlineKeyboardButton("˹ 𝐊єʏ 𝐌єssᴀɢє ˼",           callback_data="cfg_set_keymsg"),
         ],
         [
-            InlineKeyboardButton("◀️ Back", callback_data="menu_config_p1"),
-            InlineKeyboardButton("🏠 Home", callback_data="menu_home"),
-            InlineKeyboardButton("Next ▶️", callback_data="menu_config_p3"),
+            InlineKeyboardButton("˹ ◀️ 𝐁ᴀᴄᴋ ˼",              callback_data="menu_config_p1"),
+            InlineKeyboardButton("˹ 𝚮ᴏϻє ˼",                 callback_data="menu_home"),
+            InlineKeyboardButton("˹ 𝐍єхᴛ ▶️ ˼",              callback_data="menu_config_p3"),
         ],
     ])
 
@@ -105,33 +80,29 @@ def _kb_p2() -> InlineKeyboardMarkup:
 def _kb_p3() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("🔄 Toggle Auto Fetch",   callback_data="cfg_toggle_autofetch"),
+            InlineKeyboardButton("˹ 𝐓ᴏɢɢʟє 𝐀ᴜᴛᴏ 𝐅єᴛᴄн ˼",    callback_data="cfg_toggle_autofetch"),
         ],
         [
-            InlineKeyboardButton("◀️ Back", callback_data="menu_config_p2"),
-            InlineKeyboardButton("🏠 Home", callback_data="menu_home"),
+            InlineKeyboardButton("˹ ◀️ 𝐁ᴀᴄᴋ ˼",              callback_data="menu_config_p2"),
+            InlineKeyboardButton("˹ 𝚮ᴏϻє ˼",                 callback_data="menu_home"),
         ],
     ])
 
 def _kb_home() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🏠 Home", callback_data="menu_home")],
+        [InlineKeyboardButton("˹ 𝚮ᴏϻє ˼", callback_data="menu_home")],
     ])
 
 def _kb_cancel() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("❌ Cancel", callback_data="cfg_cancel_input")],
+        [InlineKeyboardButton("˹ ❌ 𝐂ᴀηᴄєʟ ˼", callback_data="cfg_cancel_input")],
     ])
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  PAGE DISPLAYS
-# ══════════════════════════════════════════════════════════════════════════════
-
 async def _show_p1(msg_or_cq):
     text = (
-        "⚙️ <b>Config — Page 1 (Setup)</b>\n\n"
-        "Niche se jo setting karna ho wo dabao:"
+        "⚙️ <b>ᴄᴏηғιɢ — ᴘᴀɢє 1 (sєᴛᴜᴘ)</b>\n\n"
+        "choose a setting below:"
     )
     if isinstance(msg_or_cq, CallbackQuery):
         await msg_or_cq.message.edit_text(text, reply_markup=_kb_p1(), parse_mode=enums.ParseMode.HTML)
@@ -141,38 +112,34 @@ async def _show_p1(msg_or_cq):
 
 async def _show_p2(cq: CallbackQuery):
     text = (
-        "⚙️ <b>Config — Page 2 (Remove / Target)</b>\n\n"
-        "Niche se option chunlo:"
+        "⚙️ <b>ᴄᴏηғιɢ — ᴘᴀɢє 2 (ʀєϻᴏᴠє / ᴛᴀʀɢєᴛ)</b>\n\n"
+        "choose an option below:"
     )
     await cq.message.edit_text(text, reply_markup=_kb_p2(), parse_mode=enums.ParseMode.HTML)
 
 
 async def _show_p3(cq: CallbackQuery):
     auto = await get_auto_fetch()
-    status = "🟢 ON" if auto else "🔴 OFF"
+    status = "🟢 on" if auto else "🔴 off"
     text = (
-        f"⚙️ <b>Config — Page 3 (Auto Fetch)</b>\n\n"
-        f"🔄 <b>Auto Fetch New Waifus:</b>  {status}\n\n"
-        "Button dabao toggle karne ke liye:"
+        f"⚙️ <b>ᴄᴏηғιɢ — ᴘᴀɢє 3 (ᴀᴜᴛᴏ ғєᴛᴄн)</b>\n\n"
+        f"🔄 <b>ᴀᴜᴛᴏ ғєᴛᴄн ηєᴡ ᴡᴀιғᴜs:</b>  {status}\n\n"
+        "press the button to toggle:"
     )
     await cq.message.edit_text(text, reply_markup=_kb_p3(), parse_mode=enums.ParseMode.HTML)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  /config COMMAND + PAGE CALLBACKS
-# ══════════════════════════════════════════════════════════════════════════════
-
 @app.on_message(filters.command("config") & filters.private)
 async def cmd_config(client: Client, message: Message):
     if not _is_authorized(message.from_user.id):
-        return await message.reply_text("🚫 Permission nahi hai!", parse_mode=enums.ParseMode.HTML)
+        return await message.reply_text("🚫 permission denied!", parse_mode=enums.ParseMode.HTML)
     await _show_p1(message)
 
 
 @app.on_callback_query(filters.regex("^menu_config_p1$"))
 async def cb_config_p1(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     await _show_p1(cq)
 
@@ -180,7 +147,7 @@ async def cb_config_p1(client: Client, cq: CallbackQuery):
 @app.on_callback_query(filters.regex("^menu_config_p2$"))
 async def cb_config_p2(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     await _show_p2(cq)
 
@@ -188,14 +155,10 @@ async def cb_config_p2(client: Client, cq: CallbackQuery):
 @app.on_callback_query(filters.regex("^menu_config_p3$"))
 async def cb_config_p3(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     await _show_p3(cq)
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  AWAITING INPUT STATE  {user_id: "state"}
-# ══════════════════════════════════════════════════════════════════════════════
 
 _awaiting: dict[int, str] = {}
 
@@ -203,11 +166,9 @@ _awaiting: dict[int, str] = {}
 @app.on_callback_query(filters.regex("^cfg_cancel_input$"))
 async def cb_cancel_input(client: Client, cq: CallbackQuery):
     _awaiting.pop(cq.from_user.id, None)
-    await cq.answer("Cancelled ✅")
+    await cq.answer("cancelled ✅")
     await _show_p1(cq)
 
-
-# ── Generic text listener for all config inputs ────────────────────────────────
 
 @app.on_message(filters.private & filters.text & ~filters.command(
     ["start","help","config","wstart","wstop","addsudo","rmsudo","sudolist","setsession","cancel"]
@@ -221,142 +182,123 @@ async def cfg_text_listener(client: Client, message: Message):
     text = message.text.strip()
     _awaiting.pop(uid, None)
 
-    # ── SET LOGGER ─────────────────────────────────────────────────────────────
     if state == "set_logger":
         try:
             chat_id = int(text)
             await set_logger(chat_id)
             await message.reply_text(
-                f"✅ <b>Logger set!</b>\n<code>{chat_id}</code>",
+                f"✅ <b>ʟᴏɢɢєʀ sєᴛ!</b>\n<code>{chat_id}</code>",
                 reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
             )
         except ValueError:
             await message.reply_text(
-                "❌ Sirf numeric Chat ID dalo! (e.g. -100xxxxxxxxxx)",
+                "❌ numeric chat id only! (e.g. -100xxxxxxxxxx)",
                 reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
             )
 
-    # ── SET COLLECTION ─────────────────────────────────────────────────────────
     elif state == "set_collection":
         await set_collection_name(text)
         await message.reply_text(
-            f"✅ <b>Collection name set:</b>  <code>{text}</code>",
+            f"✅ <b>ᴄᴏʟʟєᴄᴛιᴏη ηᴀϻє sєᴛ:</b>  <code>{text}</code>",
             reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
         )
 
-    # ── SET CAPTION KEYWORD ────────────────────────────────────────────────────
     elif state == "set_keyword":
-        # Save to DB as a config key
         from WAIFUSCRPER.Database.Mangodb import _set_config
         await _set_config("rarity_keyword", text)
         await message.reply_text(
-            f"✅ <b>Caption keyword set:</b>  <code>{text}</code>",
+            f"✅ <b>ᴄᴀᴘᴛιᴏη ᴋєʏᴡᴏʀᴅ sєᴛ:</b>  <code>{text}</code>",
             reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
         )
 
-    # ── SET TARGET CHANNEL ─────────────────────────────────────────────────────
     elif state == "set_target":
         try:
-            # Accept numeric ID or @username
             try:
                 val = int(text)
             except ValueError:
-                val = text  # username string
+                val = text
             await set_target_channel(val)
             await message.reply_text(
-                f"✅ <b>Target channel set:</b>  <code>{val}</code>",
+                f"✅ <b>ᴛᴀʀɢєᴛ ᴄнᴀηηєʟ sєᴛ:</b>  <code>{val}</code>",
                 reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
             )
         except Exception as e:
             await message.reply_text(
-                f"❌ Error: <code>{e}</code>",
+                f"❌ error: <code>{e}</code>",
                 reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
             )
 
-    # ── REMOVE WAIFU BY ID ─────────────────────────────────────────────────────
     elif state == "rm_waifu":
         deleted = await remove_waifu_by_id(text)
         if deleted:
             await message.reply_text(
-                f"✅ <b>Waifu deleted!</b>  ID: <code>{text}</code>",
+                f"✅ <b>ᴡᴀιғᴜ ᴅєʟєᴛєᴅ!</b>  id: <code>{text}</code>",
                 reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
             )
         else:
             await message.reply_text(
-                f"❌ <b>Waifu not found.</b>  ID: <code>{text}</code>",
+                f"❌ <b>ᴡᴀιғᴜ ηᴏᴛ ғᴏᴜηᴅ.</b>  id: <code>{text}</code>",
                 reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
             )
 
-    # ── SET KEYBOARD MESSAGE ───────────────────────────────────────────────────
     elif state == "set_keymsg":
         await set_keyboard_message(text)
         await message.reply_text(
-            f"✅ <b>Keyboard message set!</b>\n\n{text}",
+            f"✅ <b>ᴋєʏʙᴏᴀʀᴅ ϻєssᴀɢє sєᴛ!</b>\n\n{text}",
             reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
         )
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  INDIVIDUAL CONFIG BUTTON CALLBACKS
-# ══════════════════════════════════════════════════════════════════════════════
-
-# ── Set Logger ─────────────────────────────────────────────────────────────────
-
 @app.on_callback_query(filters.regex("^cfg_set_logger$"))
 async def cb_set_logger(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     _awaiting[cq.from_user.id] = "set_logger"
     current = await get_logger()
     await cq.message.edit_text(
-        f"📋 <b>Set Logger</b>\n\n"
-        f"Current: <code>{current or 'Not set'}</code>\n\n"
-        "Log group/channel ka <b>numeric ID</b> bhejo:\n"
+        f"📋 <b>sєᴛ ʟᴏɢɢєʀ</b>\n\n"
+        f"current: <code>{current or 'not set'}</code>\n\n"
+        "send the <b>numeric id</b> of your log group/channel:\n"
         "<i>(e.g. -100xxxxxxxxxx)</i>",
         reply_markup=_kb_cancel(), parse_mode=enums.ParseMode.HTML,
     )
 
 
-# ── Set Approve Mode ───────────────────────────────────────────────────────────
-
 @app.on_callback_query(filters.regex("^cfg_set_approve$"))
 async def cb_set_approve(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     current = await get_approve_mode()
     new_val = not current
     await set_approve_mode(new_val)
-    status = "🟢 ON" if new_val else "🔴 OFF"
+    status = "🟢 on" if new_val else "🔴 off"
     await cq.message.edit_text(
-        f"✅ <b>Approve Mode:</b>  {status}\n\n"
-        "<i>Waifu scraping pe har waifu approve karna hoga.</i>",
+        f"✅ <b>ᴀᴘᴘʀᴏᴠє ϻᴏᴅє:</b>  {status}\n\n"
+        "<i>each waifu will require approval during scraping.</i>",
         reply_markup=InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("🔄 Toggle Again", callback_data="cfg_set_approve"),
-                InlineKeyboardButton("🏠 Home",         callback_data="menu_home"),
+                InlineKeyboardButton("˹ 🔄 𝐓ᴏɢɢʟє ˼",  callback_data="cfg_set_approve"),
+                InlineKeyboardButton("˹ 𝚮ᴏϻє ˼",        callback_data="menu_home"),
             ],
         ]),
         parse_mode=enums.ParseMode.HTML,
     )
 
 
-# ── Set String Session (redirects to /setsession flow) ────────────────────────
-
 @app.on_callback_query(filters.regex("^cfg_set_session$"))
 async def cb_set_session(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     await cq.message.edit_text(
-        "🔐 <b>String Session Setup</b>\n\n"
-        "Private mein /setsession bhejo ya yahan seedha type karo.\n\n"
-        "<i>Yeh flow shuru karega:\n"
-        "Phone → OTP → 2FA (agar ho) → Done</i>",
+        "🔐 <b>sᴛʀιηɢ sєssιᴏη sєᴛᴜᴘ</b>\n\n"
+        "send /setsession in private or start the flow here.\n\n"
+        "<i>flow: phone → otp → 2fa (if enabled) → done</i>",
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("▶️ Shuru Karo", callback_data="cfg_start_session_flow")],
-            [InlineKeyboardButton("🏠 Home",       callback_data="menu_home")],
+            [InlineKeyboardButton("˹ ▶️ 𝐒ᴛᴀʀᴛ 𝐅ʟᴏᴡ ˼",  callback_data="cfg_start_session_flow")],
+            [InlineKeyboardButton("˹ 𝚮ᴏϻє ˼",            callback_data="menu_home")],
         ]),
         parse_mode=enums.ParseMode.HTML,
     )
@@ -365,132 +307,114 @@ async def cb_set_session(client: Client, cq: CallbackQuery):
 @app.on_callback_query(filters.regex("^cfg_start_session_flow$"))
 async def cb_start_session_flow(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
-    # Trigger the /setsession command handler
     await cq.message.reply_text(
-        "✅ <b>/setsession</b> type karo is chat mein session setup ke liye.",
+        "✅ send <b>/setsession</b> in this chat to begin session setup.",
         parse_mode=enums.ParseMode.HTML,
     )
 
 
-# ── Set Caption Keyword ────────────────────────────────────────────────────────
-
 @app.on_callback_query(filters.regex("^cfg_set_keyword$"))
 async def cb_set_keyword(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     _awaiting[cq.from_user.id] = "set_keyword"
     await cq.message.edit_text(
-        "🔑 <b>Set Caption Keyword</b>\n\n"
-        "Default: <code>Rarity</code>\n\n"
-        "Caption mein rarity dhundne ka keyword bhejo:\n"
-        "<i>(Jo label waifu caption mein use hota hai)</i>",
+        "🔑 <b>sєᴛ ᴄᴀᴘᴛιᴏη ᴋєʏᴡᴏʀᴅ</b>\n\n"
+        "default: <code>rarity</code>\n\n"
+        "send the keyword used to find rarity in waifu captions:",
         reply_markup=_kb_cancel(), parse_mode=enums.ParseMode.HTML,
     )
 
-
-# ── Set Collection Name ────────────────────────────────────────────────────────
 
 @app.on_callback_query(filters.regex("^cfg_set_collection$"))
 async def cb_set_collection(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     _awaiting[cq.from_user.id] = "set_collection"
     current = await get_collection_name()
     await cq.message.edit_text(
-        f"🗂 <b>Set Collection Name</b>\n\n"
-        f"Current: <code>{current or 'waifus (default)'}</code>\n\n"
-        "MongoDB collection ka naam bhejo:",
+        f"🗂 <b>sєᴛ ᴄᴏʟʟєᴄᴛιᴏη ηᴀϻє</b>\n\n"
+        f"current: <code>{current or 'waifus (default)'}</code>\n\n"
+        "send the mongodb collection name:",
         reply_markup=_kb_cancel(), parse_mode=enums.ParseMode.HTML,
     )
 
-
-# ── Remove String Session ──────────────────────────────────────────────────────
 
 @app.on_callback_query(filters.regex("^cfg_rm_session$"))
 async def cb_rm_session(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     await remove_string_session()
     await cq.message.edit_text(
-        "✅ <b>String Session remove kar diya!</b>\n\n"
-        "Dobara set karne ke liye /setsession use karo.",
+        "✅ <b>sᴛʀιηɢ sєssιᴏη ʀєϻᴏᴠєᴅ!</b>\n\n"
+        "use /setsession to set it again.",
         reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
     )
 
-
-# ── Remove Logger ──────────────────────────────────────────────────────────────
 
 @app.on_callback_query(filters.regex("^cfg_rm_logger$"))
 async def cb_rm_logger(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     await remove_logger()
     await cq.message.edit_text(
-        "✅ <b>Logger remove kar diya!</b>",
+        "✅ <b>ʟᴏɢɢєʀ ʀєϻᴏᴠєᴅ!</b>",
         reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
     )
 
-
-# ── Remove Collection ──────────────────────────────────────────────────────────
 
 @app.on_callback_query(filters.regex("^cfg_rm_collection$"))
 async def cb_rm_collection(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     await remove_collection_name()
     await cq.message.edit_text(
-        "✅ <b>Collection name remove kar diya!</b>\n"
-        "<i>Default 'waifus' use hoga ab.</i>",
+        "✅ <b>ᴄᴏʟʟєᴄᴛιᴏη ηᴀϻє ʀєϻᴏᴠєᴅ!</b>\n"
+        "<i>default 'waifus' will be used now.</i>",
         reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
     )
 
 
-# ── Remove Waifu by ID ─────────────────────────────────────────────────────────
-
 @app.on_callback_query(filters.regex("^cfg_rm_waifu$"))
 async def cb_rm_waifu(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     _awaiting[cq.from_user.id] = "rm_waifu"
     await cq.message.edit_text(
-        "🗑 <b>Remove Waifu by ID</b>\n\n"
-        "Waifu ka <b>waifu_id</b> bhejo jo delete karna hai:",
+        "🗑 <b>ʀєϻᴏᴠє ᴡᴀιғᴜ ʙʏ ιᴅ</b>\n\n"
+        "send the <b>waifu_id</b> you want to delete:",
         reply_markup=_kb_cancel(), parse_mode=enums.ParseMode.HTML,
     )
 
-
-# ── Set Target Channel ─────────────────────────────────────────────────────────
 
 @app.on_callback_query(filters.regex("^cfg_set_target$"))
 async def cb_set_target(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     _awaiting[cq.from_user.id] = "set_target"
     current = await get_target_channel()
     await cq.message.edit_text(
-        f"📡 <b>Set Target Channel</b>\n\n"
-        f"Current: <code>{current or 'Not set'}</code>\n\n"
-        "Channel ID ya @username bhejo\n"
-        "<i>Jis channel se waifus scrape karne hain.</i>",
+        f"📡 <b>sєᴛ ᴛᴀʀɢєᴛ ᴄнᴀηηєʟ</b>\n\n"
+        f"current: <code>{current or 'not set'}</code>\n\n"
+        "send the channel id or @username\n"
+        "<i>the channel you want to scrape waifus from.</i>",
         reply_markup=_kb_cancel(), parse_mode=enums.ParseMode.HTML,
     )
 
 
-# ── Fetch All Waifus (redirect to /wstart) ────────────────────────────────────
-
 @app.on_callback_query(filters.regex("^cfg_fetch_all$"))
 async def cb_fetch_all(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
 
     target = await get_target_channel()
@@ -498,57 +422,54 @@ async def cb_fetch_all(client: Client, cq: CallbackQuery):
 
     if not target:
         return await cq.message.edit_text(
-            "❌ <b>Target Channel set nahi hai!</b>\n"
-            "Pehle Config → Set Target Channel karo.",
+            "❌ <b>ᴛᴀʀɢєᴛ ᴄнᴀηηєʟ ηᴏᴛ sєᴛ!</b>\n"
+            "go to config → set target channel first.",
             reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
         )
 
     await cq.message.edit_text(
-        f"📥 <b>Fetch All Waifus</b>\n\n"
-        f"📡 <b>Target:</b>  <code>{target}</code>\n"
-        f"🖼 <b>DB mein abhi:</b>  <code>{count}</code> waifus\n\n"
-        "Scraping shuru karne ke liye <b>/wstart</b> bhejo.",
+        f"📥 <b>ғєᴛᴄн ᴀʟʟ ᴡᴀιғᴜs</b>\n\n"
+        f"📡 <b>ᴛᴀʀɢєᴛ:</b>  <code>{target}</code>\n"
+        f"🖼 <b>ᴄᴜʀʀєηᴛ ιη ᴅʙ:</b>  <code>{count}</code> waifus\n\n"
+        "send <b>/wstart</b> to begin scraping.",
         reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
     )
 
 
-# ── Set Keyboard Message ───────────────────────────────────────────────────────
-
 @app.on_callback_query(filters.regex("^cfg_set_keymsg$"))
 async def cb_set_keymsg(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     _awaiting[cq.from_user.id] = "set_keymsg"
     current = await get_keyboard_message()
     await cq.message.edit_text(
-        f"💬 <b>Set Keyboard Message</b>\n\n"
-        f"Current:\n<code>{current or 'Not set'}</code>\n\n"
-        "Naya message bhejo:",
+        f"💬 <b>sєᴛ ᴋєʏʙᴏᴀʀᴅ ϻєssᴀɢє</b>\n\n"
+        f"current:\n<code>{current or 'not set'}</code>\n\n"
+        "send the new message:",
         reply_markup=_kb_cancel(), parse_mode=enums.ParseMode.HTML,
     )
 
 
-# ── Toggle Auto Fetch ──────────────────────────────────────────────────────────
-
 @app.on_callback_query(filters.regex("^cfg_toggle_autofetch$"))
 async def cb_toggle_autofetch(client: Client, cq: CallbackQuery):
     if not _is_authorized(cq.from_user.id):
-        return await cq.answer("🚫 Permission nahi!", show_alert=True)
+        return await cq.answer("🚫 permission denied!", show_alert=True)
     await cq.answer()
     current = await get_auto_fetch()
     new_val = not current
     await set_auto_fetch(new_val)
-    status = "🟢 ON" if new_val else "🔴 OFF"
+    status = "🟢 on" if new_val else "🔴 off"
     await cq.message.edit_text(
-        f"🔄 <b>Auto Fetch New Waifus:</b>  {status}\n\n"
-        "<i>Naye waifus channel pe aate hi auto capture honge.</i>",
+        f"🔄 <b>ᴀᴜᴛᴏ ғєᴛᴄн ηєᴡ ᴡᴀιғᴜs:</b>  {status}\n\n"
+        "<i>new waifus will be captured automatically as they arrive.</i>",
         reply_markup=InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("🔄 Toggle Again", callback_data="cfg_toggle_autofetch"),
-                InlineKeyboardButton("◀️ Back",         callback_data="menu_config_p3"),
+                InlineKeyboardButton("˹ 🔄 𝐓ᴏɢɢʟє ˼",  callback_data="cfg_toggle_autofetch"),
+                InlineKeyboardButton("˹ ◀️ 𝐁ᴀᴄᴋ ˼",    callback_data="menu_config_p3"),
             ],
-            [InlineKeyboardButton("🏠 Home", callback_data="menu_home")],
+            [InlineKeyboardButton("˹ 𝚮ᴏϻє ˼",          callback_data="menu_home")],
         ]),
         parse_mode=enums.ParseMode.HTML,
-                      )
+    )
+  
