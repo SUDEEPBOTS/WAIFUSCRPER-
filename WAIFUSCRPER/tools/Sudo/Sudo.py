@@ -1,13 +1,4 @@
-from pyrogram import enums
-"""
-WAIFUSCRPER — Sudo.py
-Commands:
-  /addsudo  <user_id | reply>  — Add sudo user  (owner only)
-  /rmsudo   <user_id | reply>  — Remove sudo user (owner only)
-  /sudolist                    — List all sudo users
-"""
-
-from pyrogram import Client, filters
+from pyrogram import Client, filters, enums
 from pyrogram.types import Message
 from loguru import logger
 
@@ -16,22 +7,18 @@ from WAIFUSCRPER import app
 from WAIFUSCRPER.Database import add_sudo, remove_sudo, get_sudo_users
 
 
-# ── Owner-only filter ──────────────────────────────────────────────────────────
-
 def _owner_only(_, __, msg: Message) -> bool:
     return msg.from_user and msg.from_user.id == config.OWNER_ID
 
 owner_filter = filters.create(_owner_only)
 
 
-# ── Helper: resolve user_id from command or reply ──────────────────────────────
-
 def _resolve_user(message: Message) -> int | None:
     """
-    Returns user_id from:
+    returns user_id from:
       1. /cmd <user_id>
-      2. Reply to a message
-    Returns None if neither found.
+      2. reply to a message
+    returns none if neither found.
     """
     args = message.command[1:]
     if args:
@@ -45,8 +32,6 @@ def _resolve_user(message: Message) -> int | None:
 
     return None
 
-
-# ── /addsudo ───────────────────────────────────────────────────────────────────
 
 @app.on_message(filters.command("addsudo") & owner_filter, group=0)
 async def addsudo_handler(client: Client, message: Message):
@@ -73,15 +58,13 @@ async def addsudo_handler(client: Client, message: Message):
         )
 
     await add_sudo(user_id)
-    logger.info(f"Sudo added: {user_id} by owner")
+    logger.info(f"sudo added: {user_id} by owner")
 
     await message.reply_text(
         f"✅ <code>{user_id}</code> <b>ʜᴀs ʙᴇᴇɴ ɢʀᴀɴᴛᴇᴅ sᴜᴅᴏ ᴀᴄᴄᴇss!</b>",
         parse_mode=enums.ParseMode.HTML,
     )
 
-
-# ── /rmsudo ────────────────────────────────────────────────────────────────────
 
 @app.on_message(filters.command("rmsudo") & owner_filter, group=0)
 async def rmsudo_handler(client: Client, message: Message):
@@ -108,15 +91,13 @@ async def rmsudo_handler(client: Client, message: Message):
         )
 
     await remove_sudo(user_id)
-    logger.info(f"Sudo removed: {user_id} by owner")
+    logger.info(f"sudo removed: {user_id} by owner")
 
     await message.reply_text(
         f"✅ <code>{user_id}</code> <b>ʜᴀs ʙᴇᴇɴ ʀᴇᴍᴏᴠᴇᴅ ꜰʀᴏᴍ sᴜᴅᴏ!</b>",
         parse_mode=enums.ParseMode.HTML,
     )
 
-
-# ── /sudolist ──────────────────────────────────────────────────────────────────
 
 @app.on_message(filters.command("sudolist") & owner_filter, group=0)
 async def sudolist_handler(client: Client, message: Message):
@@ -150,5 +131,4 @@ async def sudolist_handler(client: Client, message: Message):
         parse_mode=enums.ParseMode.HTML,
         disable_web_page_preview=True,
     )
-
   
