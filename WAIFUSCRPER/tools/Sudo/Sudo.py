@@ -48,28 +48,25 @@ def _resolve_user(message: Message) -> int | None:
 
 @Client.on_message(filters.command("addsudo") & owner_filter)
 async def addsudo_handler(client: Client, message: Message):
-    """
-    Add a sudo user.
-    Usage:
-      /addsudo <user_id>
-      Reply to a message + /addsudo
-    """
     user_id = _resolve_user(message)
 
     if not user_id:
         return await message.reply_text(
-            "❌ Provide a user ID or reply to a user.\n"
-            "Usage: <code>/addsudo 123456789</code>",
+            "❌ <b>ᴘʀᴏᴠɪᴅᴇ ᴀ ᴜsᴇʀ ɪᴅ ᴏʀ ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴜsᴇʀ.</b>\n\n"
+            "ᴜsᴀɢᴇ: <code>/addsudo 123456789</code>",
             parse_mode="html",
         )
 
     if user_id == config.OWNER_ID:
-        return await message.reply_text("👑 Owner toh already top pe hai bhai!")
+        return await message.reply_text(
+            "👑 <b>ᴏᴡɴᴇʀ ɪs ᴀʟʀᴇᴀᴅʏ ᴀᴛ ᴛʜᴇ ᴛᴏᴘ!</b>",
+            parse_mode="html",
+        )
 
     existing = await get_sudo_users()
     if user_id in existing:
         return await message.reply_text(
-            f"⚠️ <code>{user_id}</code> already sudo hai.",
+            f"⚠️ <code>{user_id}</code> <b>ɪs ᴀʟʀᴇᴀᴅʏ ᴀ sᴜᴅᴏ ᴜsᴇʀ.</b>",
             parse_mode="html",
         )
 
@@ -77,7 +74,7 @@ async def addsudo_handler(client: Client, message: Message):
     logger.info(f"Sudo added: {user_id} by owner")
 
     await message.reply_text(
-        f"✅ <code>{user_id}</code> ko sudo diya gaya!",
+        f"✅ <code>{user_id}</code> <b>ʜᴀs ʙᴇᴇɴ ɢʀᴀɴᴛᴇᴅ sᴜᴅᴏ ᴀᴄᴄᴇss!</b>",
         parse_mode="html",
     )
 
@@ -86,28 +83,25 @@ async def addsudo_handler(client: Client, message: Message):
 
 @Client.on_message(filters.command("rmsudo") & owner_filter)
 async def rmsudo_handler(client: Client, message: Message):
-    """
-    Remove a sudo user.
-    Usage:
-      /rmsudo <user_id>
-      Reply to a message + /rmsudo
-    """
     user_id = _resolve_user(message)
 
     if not user_id:
         return await message.reply_text(
-            "❌ Provide a user ID or reply to a user.\n"
-            "Usage: <code>/rmsudo 123456789</code>",
+            "❌ <b>ᴘʀᴏᴠɪᴅᴇ ᴀ ᴜsᴇʀ ɪᴅ ᴏʀ ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴜsᴇʀ.</b>\n\n"
+            "ᴜsᴀɢᴇ: <code>/rmsudo 123456789</code>",
             parse_mode="html",
         )
 
     if user_id == config.OWNER_ID:
-        return await message.reply_text("😂 Owner ko remove nahi kar sakta bhai!")
+        return await message.reply_text(
+            "😂 <b>ᴄᴀɴɴᴏᴛ ʀᴇᴍᴏᴠᴇ ᴛʜᴇ ᴏᴡɴᴇʀ!</b>",
+            parse_mode="html",
+        )
 
     existing = await get_sudo_users()
     if user_id not in existing:
         return await message.reply_text(
-            f"⚠️ <code>{user_id}</code> sudo list mein hai hi nahi.",
+            f"⚠️ <code>{user_id}</code> <b>ɪs ɴᴏᴛ ɪɴ ᴛʜᴇ sᴜᴅᴏ ʟɪsᴛ.</b>",
             parse_mode="html",
         )
 
@@ -115,7 +109,7 @@ async def rmsudo_handler(client: Client, message: Message):
     logger.info(f"Sudo removed: {user_id} by owner")
 
     await message.reply_text(
-        f"✅ <code>{user_id}</code> ko sudo se hata diya!",
+        f"✅ <code>{user_id}</code> <b>ʜᴀs ʙᴇᴇɴ ʀᴇᴍᴏᴠᴇᴅ ꜰʀᴏᴍ sᴜᴅᴏ!</b>",
         parse_mode="html",
     )
 
@@ -124,21 +118,28 @@ async def rmsudo_handler(client: Client, message: Message):
 
 @Client.on_message(filters.command("sudolist") & owner_filter)
 async def sudolist_handler(client: Client, message: Message):
-    """List all current sudo users."""
     sudo_users = await get_sudo_users()
 
     if not sudo_users:
-        return await message.reply_text("📭 Koi sudo user nahi hai abhi.")
+        return await message.reply_text(
+            "📭 <b>ɴᴏ sᴜᴅᴏ ᴜsᴇʀs ꜰᴏᴜɴᴅ.</b>",
+            parse_mode="html",
+        )
 
-    lines = [f"👑 <b>Owner:</b> <code>{config.OWNER_ID}</code>\n"]
-    lines.append(f"🛡 <b>Sudo Users ({len(sudo_users)}):</b>")
+    lines = [
+        f"👑 <b>ᴏᴡɴᴇʀ :</b> <code>{config.OWNER_ID}</code>\n",
+        f"🛡 <b>sᴜᴅᴏ ᴜsᴇʀs ({len(sudo_users)}) :</b>",
+    ]
 
     for uid in sudo_users:
         try:
-            user = await client.get_users(uid)
-            name = user.first_name
-            username = f"@{user.username}" if user.username else "no username"
-            lines.append(f"  • <a href='tg://user?id={uid}'>{name}</a> ({username}) — <code>{uid}</code>")
+            user     = await client.get_users(uid)
+            name     = user.first_name
+            username = f"@{user.username}" if user.username else "ɴᴏ ᴜsᴇʀɴᴀᴍᴇ"
+            lines.append(
+                f"  • <a href='tg://user?id={uid}'>{name}</a> "
+                f"({username}) — <code>{uid}</code>"
+            )
         except Exception:
             lines.append(f"  • <code>{uid}</code>")
 
@@ -147,4 +148,4 @@ async def sudolist_handler(client: Client, message: Message):
         parse_mode="html",
         disable_web_page_preview=True,
     )
-    
+  
