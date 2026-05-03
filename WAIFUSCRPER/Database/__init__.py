@@ -17,6 +17,10 @@ from WAIFUSCRPER.Database.Mangodb import (
     remove_waifu_by_id,
     drop_collection,
 
+    # ── Rejected Waifu ───────────────────────────
+    add_rejected_waifu,
+    is_rejected_waifu,
+
     # ── Sudo ─────────────────────────────────────
     add_sudo,
     remove_sudo,
@@ -58,6 +62,8 @@ __all__ = [
     "get_all_waifus",
     "remove_waifu_by_id",
     "drop_collection",
+    "add_rejected_waifu",
+    "is_rejected_waifu",
     "add_sudo",
     "remove_sudo",
     "get_sudo_users",
