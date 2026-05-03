@@ -1,6 +1,6 @@
 """
 WAIFUSCRPER — __main__.py
-Entry point. Plugins already loaded in __init__.py
+Entry point. Pyrogram loads plugins automatically via plugins parameter.
 """
 
 import asyncio
@@ -9,7 +9,7 @@ import os
 from pyrogram import idle
 
 import config
-from WAIFUSCRPER import app  # plugins load ho jaate hain yahan import pe
+from WAIFUSCRPER import app
 from WAIFUSCRPER.Logging import LOGGER
 from WAIFUSCRPER.Database import get_sudo_users
 
@@ -23,7 +23,6 @@ async def init():
     log.info("  ᴡᴀɪꜰᴜsᴄʀᴘᴇʀ — sᴛᴀʀᴛɪɴɢ ᴜᴘ...")
     log.info("━" * 45)
 
-    # ── Validate required config ───────────────────────────────────────────────
     missing = []
     if not config.BOT_TOKEN:  missing.append("BOT_TOKEN")
     if not config.API_ID:     missing.append("API_ID")
@@ -35,7 +34,6 @@ async def init():
             log.error(f"❌ {key} not set in .env")
         exit(1)
 
-    # ── Load sudo users ────────────────────────────────────────────────────────
     try:
         config.SUDO_USERS = await get_sudo_users()
         log.info(f"sᴜᴅᴏ ᴜsᴇʀs ʟᴏᴀᴅᴇᴅ: {len(config.SUDO_USERS)}")
@@ -43,7 +41,6 @@ async def init():
         log.warning(f"Could not load sudo users: {e}")
         config.SUDO_USERS = []
 
-    # ── Start bot ──────────────────────────────────────────────────────────────
     await app.start()
     me = await app.get_me()
     log.info(f"ʙᴏᴛ sᴛᴀʀᴛᴇᴅ ✅  @{me.username}  (ID: {me.id})")
