@@ -1,3 +1,4 @@
+from pyrogram import enums
 """
 WAIFUSCRPER — tools/__init__.py
 Auto-discovers all plugin modules inside the tools/ folder.

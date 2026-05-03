@@ -1,3 +1,4 @@
+from pyrogram import enums
 """
 WAIFUSCRPER — tools/help.py
 Handles:
@@ -220,7 +221,7 @@ def _build(section: str) -> tuple[str, InlineKeyboardMarkup]:
 @app.on_message(filters.command("help") & (filters.private | filters.group), group=0)
 async def help_cmd(client: Client, message: Message):
     text, markup = _build("main")
-    await message.reply_text(text, reply_markup=markup, parse_mode="html")
+    await message.reply_text(text, reply_markup=markup, parse_mode=enums.ParseMode.HTML)
     log.info(f"/help → {message.from_user.id}")
 
 
@@ -232,7 +233,7 @@ async def help_cmd(client: Client, message: Message):
 async def cb_menu_help(client: Client, cq: CallbackQuery):
     await cq.answer()
     text, markup = _build("main")
-    await cq.message.edit_text(text, reply_markup=markup, parse_mode="html")
+    await cq.message.edit_text(text, reply_markup=markup, parse_mode=enums.ParseMode.HTML)
 
 
 @app.on_callback_query(filters.regex("^help_(.+)$"), group=0)
@@ -246,7 +247,7 @@ async def cb_help_section(client: Client, cq: CallbackQuery):
     text, markup = _build(section)
 
     try:
-        await cq.message.edit_text(text, reply_markup=markup, parse_mode="html")
+        await cq.message.edit_text(text, reply_markup=markup, parse_mode=enums.ParseMode.HTML)
     except Exception:
         pass   # Message same hone pe Telegram error deta hai — ignore
 

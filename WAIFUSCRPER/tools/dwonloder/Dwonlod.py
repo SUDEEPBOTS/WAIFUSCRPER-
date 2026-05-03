@@ -1,3 +1,4 @@
+from pyrogram import enums
 """
 WAIFUSCRPER — Dwonlod.py
 Handles:

@@ -1,3 +1,4 @@
+from pyrogram import enums
 """
 WAIFUSCRPER — tools/config/Config.py
 Full config panel with 3 pages of buttons.
@@ -133,9 +134,9 @@ async def _show_p1(msg_or_cq):
         "Niche se jo setting karna ho wo dabao:"
     )
     if isinstance(msg_or_cq, CallbackQuery):
-        await msg_or_cq.message.edit_text(text, reply_markup=_kb_p1(), parse_mode="html")
+        await msg_or_cq.message.edit_text(text, reply_markup=_kb_p1(), parse_mode=enums.ParseMode.HTML)
     else:
-        await msg_or_cq.reply_text(text, reply_markup=_kb_p1(), parse_mode="html")
+        await msg_or_cq.reply_text(text, reply_markup=_kb_p1(), parse_mode=enums.ParseMode.HTML)
 
 
 async def _show_p2(cq: CallbackQuery):
@@ -143,7 +144,7 @@ async def _show_p2(cq: CallbackQuery):
         "⚙️ <b>Config — Page 2 (Remove / Target)</b>\n\n"
         "Niche se option chunlo:"
     )
-    await cq.message.edit_text(text, reply_markup=_kb_p2(), parse_mode="html")
+    await cq.message.edit_text(text, reply_markup=_kb_p2(), parse_mode=enums.ParseMode.HTML)
 
 
 async def _show_p3(cq: CallbackQuery):
@@ -154,7 +155,7 @@ async def _show_p3(cq: CallbackQuery):
         f"🔄 <b>Auto Fetch New Waifus:</b>  {status}\n\n"
         "Button dabao toggle karne ke liye:"
     )
-    await cq.message.edit_text(text, reply_markup=_kb_p3(), parse_mode="html")
+    await cq.message.edit_text(text, reply_markup=_kb_p3(), parse_mode=enums.ParseMode.HTML)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -164,7 +165,7 @@ async def _show_p3(cq: CallbackQuery):
 @app.on_message(filters.command("config") & filters.private)
 async def cmd_config(client: Client, message: Message):
     if not _is_authorized(message.from_user.id):
-        return await message.reply_text("🚫 Permission nahi hai!", parse_mode="html")
+        return await message.reply_text("🚫 Permission nahi hai!", parse_mode=enums.ParseMode.HTML)
     await _show_p1(message)
 
 
@@ -227,12 +228,12 @@ async def cfg_text_listener(client: Client, message: Message):
             await set_logger(chat_id)
             await message.reply_text(
                 f"✅ <b>Logger set!</b>\n<code>{chat_id}</code>",
-                reply_markup=_kb_home(), parse_mode="html",
+                reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
             )
         except ValueError:
             await message.reply_text(
                 "❌ Sirf numeric Chat ID dalo! (e.g. -100xxxxxxxxxx)",
-                reply_markup=_kb_home(), parse_mode="html",
+                reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
             )
 
     # ── SET COLLECTION ─────────────────────────────────────────────────────────
@@ -240,7 +241,7 @@ async def cfg_text_listener(client: Client, message: Message):
         await set_collection_name(text)
         await message.reply_text(
             f"✅ <b>Collection name set:</b>  <code>{text}</code>",
-            reply_markup=_kb_home(), parse_mode="html",
+            reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
         )
 
     # ── SET CAPTION KEYWORD ────────────────────────────────────────────────────
@@ -250,7 +251,7 @@ async def cfg_text_listener(client: Client, message: Message):
         await _set_config("rarity_keyword", text)
         await message.reply_text(
             f"✅ <b>Caption keyword set:</b>  <code>{text}</code>",
-            reply_markup=_kb_home(), parse_mode="html",
+            reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
         )
 
     # ── SET TARGET CHANNEL ─────────────────────────────────────────────────────
@@ -264,12 +265,12 @@ async def cfg_text_listener(client: Client, message: Message):
             await set_target_channel(val)
             await message.reply_text(
                 f"✅ <b>Target channel set:</b>  <code>{val}</code>",
-                reply_markup=_kb_home(), parse_mode="html",
+                reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
             )
         except Exception as e:
             await message.reply_text(
                 f"❌ Error: <code>{e}</code>",
-                reply_markup=_kb_home(), parse_mode="html",
+                reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
             )
 
     # ── REMOVE WAIFU BY ID ─────────────────────────────────────────────────────
@@ -278,12 +279,12 @@ async def cfg_text_listener(client: Client, message: Message):
         if deleted:
             await message.reply_text(
                 f"✅ <b>Waifu deleted!</b>  ID: <code>{text}</code>",
-                reply_markup=_kb_home(), parse_mode="html",
+                reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
             )
         else:
             await message.reply_text(
                 f"❌ <b>Waifu not found.</b>  ID: <code>{text}</code>",
-                reply_markup=_kb_home(), parse_mode="html",
+                reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
             )
 
     # ── SET KEYBOARD MESSAGE ───────────────────────────────────────────────────
@@ -291,7 +292,7 @@ async def cfg_text_listener(client: Client, message: Message):
         await set_keyboard_message(text)
         await message.reply_text(
             f"✅ <b>Keyboard message set!</b>\n\n{text}",
-            reply_markup=_kb_home(), parse_mode="html",
+            reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
         )
 
 
@@ -313,7 +314,7 @@ async def cb_set_logger(client: Client, cq: CallbackQuery):
         f"Current: <code>{current or 'Not set'}</code>\n\n"
         "Log group/channel ka <b>numeric ID</b> bhejo:\n"
         "<i>(e.g. -100xxxxxxxxxx)</i>",
-        reply_markup=_kb_cancel(), parse_mode="html",
+        reply_markup=_kb_cancel(), parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -337,7 +338,7 @@ async def cb_set_approve(client: Client, cq: CallbackQuery):
                 InlineKeyboardButton("🏠 Home",         callback_data="menu_home"),
             ],
         ]),
-        parse_mode="html",
+        parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -357,7 +358,7 @@ async def cb_set_session(client: Client, cq: CallbackQuery):
             [InlineKeyboardButton("▶️ Shuru Karo", callback_data="cfg_start_session_flow")],
             [InlineKeyboardButton("🏠 Home",       callback_data="menu_home")],
         ]),
-        parse_mode="html",
+        parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -369,7 +370,7 @@ async def cb_start_session_flow(client: Client, cq: CallbackQuery):
     # Trigger the /setsession command handler
     await cq.message.reply_text(
         "✅ <b>/setsession</b> type karo is chat mein session setup ke liye.",
-        parse_mode="html",
+        parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -386,7 +387,7 @@ async def cb_set_keyword(client: Client, cq: CallbackQuery):
         "Default: <code>Rarity</code>\n\n"
         "Caption mein rarity dhundne ka keyword bhejo:\n"
         "<i>(Jo label waifu caption mein use hota hai)</i>",
-        reply_markup=_kb_cancel(), parse_mode="html",
+        reply_markup=_kb_cancel(), parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -403,7 +404,7 @@ async def cb_set_collection(client: Client, cq: CallbackQuery):
         f"🗂 <b>Set Collection Name</b>\n\n"
         f"Current: <code>{current or 'waifus (default)'}</code>\n\n"
         "MongoDB collection ka naam bhejo:",
-        reply_markup=_kb_cancel(), parse_mode="html",
+        reply_markup=_kb_cancel(), parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -418,7 +419,7 @@ async def cb_rm_session(client: Client, cq: CallbackQuery):
     await cq.message.edit_text(
         "✅ <b>String Session remove kar diya!</b>\n\n"
         "Dobara set karne ke liye /setsession use karo.",
-        reply_markup=_kb_home(), parse_mode="html",
+        reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -432,7 +433,7 @@ async def cb_rm_logger(client: Client, cq: CallbackQuery):
     await remove_logger()
     await cq.message.edit_text(
         "✅ <b>Logger remove kar diya!</b>",
-        reply_markup=_kb_home(), parse_mode="html",
+        reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -447,7 +448,7 @@ async def cb_rm_collection(client: Client, cq: CallbackQuery):
     await cq.message.edit_text(
         "✅ <b>Collection name remove kar diya!</b>\n"
         "<i>Default 'waifus' use hoga ab.</i>",
-        reply_markup=_kb_home(), parse_mode="html",
+        reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -462,7 +463,7 @@ async def cb_rm_waifu(client: Client, cq: CallbackQuery):
     await cq.message.edit_text(
         "🗑 <b>Remove Waifu by ID</b>\n\n"
         "Waifu ka <b>waifu_id</b> bhejo jo delete karna hai:",
-        reply_markup=_kb_cancel(), parse_mode="html",
+        reply_markup=_kb_cancel(), parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -480,7 +481,7 @@ async def cb_set_target(client: Client, cq: CallbackQuery):
         f"Current: <code>{current or 'Not set'}</code>\n\n"
         "Channel ID ya @username bhejo\n"
         "<i>Jis channel se waifus scrape karne hain.</i>",
-        reply_markup=_kb_cancel(), parse_mode="html",
+        reply_markup=_kb_cancel(), parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -499,7 +500,7 @@ async def cb_fetch_all(client: Client, cq: CallbackQuery):
         return await cq.message.edit_text(
             "❌ <b>Target Channel set nahi hai!</b>\n"
             "Pehle Config → Set Target Channel karo.",
-            reply_markup=_kb_home(), parse_mode="html",
+            reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
         )
 
     await cq.message.edit_text(
@@ -507,7 +508,7 @@ async def cb_fetch_all(client: Client, cq: CallbackQuery):
         f"📡 <b>Target:</b>  <code>{target}</code>\n"
         f"🖼 <b>DB mein abhi:</b>  <code>{count}</code> waifus\n\n"
         "Scraping shuru karne ke liye <b>/wstart</b> bhejo.",
-        reply_markup=_kb_home(), parse_mode="html",
+        reply_markup=_kb_home(), parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -524,7 +525,7 @@ async def cb_set_keymsg(client: Client, cq: CallbackQuery):
         f"💬 <b>Set Keyboard Message</b>\n\n"
         f"Current:\n<code>{current or 'Not set'}</code>\n\n"
         "Naya message bhejo:",
-        reply_markup=_kb_cancel(), parse_mode="html",
+        reply_markup=_kb_cancel(), parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -549,5 +550,5 @@ async def cb_toggle_autofetch(client: Client, cq: CallbackQuery):
             ],
             [InlineKeyboardButton("🏠 Home", callback_data="menu_home")],
         ]),
-        parse_mode="html",
+        parse_mode=enums.ParseMode.HTML,
                       )

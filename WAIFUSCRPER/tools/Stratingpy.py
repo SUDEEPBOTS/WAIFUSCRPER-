@@ -1,3 +1,4 @@
+from pyrogram import enums
 """
 WAIFUSCRPER — tools/Stratingpy.py
 String Session setup via bot:
@@ -69,12 +70,12 @@ async def cmd_cancel(client: Client, message: Message):
         _active.pop(uid)
         await message.reply_text(
             "❌ <b>Session setup cancel kar diya.</b>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
     else:
         await message.reply_text(
             "⚠️ <b>Koi active setup nahi chal raha.</b>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
 
@@ -87,13 +88,13 @@ async def cmd_setsession(client: Client, message: Message):
     uid = message.from_user.id
 
     if not _is_authorized(uid):
-        return await message.reply_text("🚫 Permission nahi hai!", parse_mode="html")
+        return await message.reply_text("🚫 Permission nahi hai!", parse_mode=enums.ParseMode.HTML)
 
     if uid in _active:
         return await message.reply_text(
             "⚠️ Ek session setup pehle se chal raha hai.\n"
             "/cancel se band karo pehle.",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     _active[uid] = True
@@ -104,7 +105,7 @@ async def cmd_setsession(client: Client, message: Message):
         "<b>Step 1/3</b> — Phone number bhejo:\n"
         "<i>(Format: +91XXXXXXXXXX)</i>\n\n"
         "<i>/cancel se band karo.</i>",
-        parse_mode="html",
+        parse_mode=enums.ParseMode.HTML,
     )
 
     phone = await _wait_for_reply(client, uid)
@@ -112,7 +113,7 @@ async def cmd_setsession(client: Client, message: Message):
         _active.pop(uid, None)
         return await step1.edit_text(
             "⏰ <b>Timeout ya cancel!</b>  Setup band ho gaya.",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     # Create a temporary Pyrogram client for login
@@ -129,7 +130,7 @@ async def cmd_setsession(client: Client, message: Message):
         _active.pop(uid, None)
         return await step1.edit_text(
             f"❌ <b>Connection failed:</b> <code>{e}</code>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     # Send OTP
@@ -140,21 +141,21 @@ async def cmd_setsession(client: Client, message: Message):
         await temp.disconnect()
         return await step1.edit_text(
             "❌ <b>Invalid phone number!</b>  Check karke dobara try karo.",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
     except FloodWait as e:
         _active.pop(uid, None)
         await temp.disconnect()
         return await step1.edit_text(
             f"⏳ <b>FloodWait:</b>  {e.value}s baad try karo.",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
     except Exception as e:
         _active.pop(uid, None)
         await temp.disconnect()
         return await step1.edit_text(
             f"❌ <b>Error:</b> <code>{e}</code>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     # ── Step 2: OTP ────────────────────────────────────────────────────────────
@@ -163,7 +164,7 @@ async def cmd_setsession(client: Client, message: Message):
         "<b>Step 2/3</b> — OTP bhejo:\n"
         "<i>(Telegram ne jo code bheja — spaces ke saath bhi chalega)</i>\n\n"
         "<i>/cancel se band karo.</i>",
-        parse_mode="html",
+        parse_mode=enums.ParseMode.HTML,
     )
 
     otp_raw = await _wait_for_reply(client, uid)
@@ -172,7 +173,7 @@ async def cmd_setsession(client: Client, message: Message):
         await temp.disconnect()
         return await step2.edit_text(
             "⏰ <b>Timeout ya cancel!</b>  Setup band ho gaya.",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     otp = otp_raw.replace(" ", "").replace("-", "")
@@ -187,7 +188,7 @@ async def cmd_setsession(client: Client, message: Message):
             "<b>Step 3/3</b> — 2FA Password bhejo:\n"
             "<i>(Telegram account ka cloud password)</i>\n\n"
             "<i>/cancel se band karo.</i>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
         password = await _wait_for_reply(client, uid)
@@ -196,7 +197,7 @@ async def cmd_setsession(client: Client, message: Message):
             await temp.disconnect()
             return await step3.edit_text(
                 "⏰ <b>Timeout ya cancel!</b>  Setup band ho gaya.",
-                parse_mode="html",
+                parse_mode=enums.ParseMode.HTML,
             )
 
         try:
@@ -206,38 +207,38 @@ async def cmd_setsession(client: Client, message: Message):
             await temp.disconnect()
             return await step3.edit_text(
                 "❌ <b>Wrong 2FA password!</b>  Dobara /setsession se try karo.",
-                parse_mode="html",
+                parse_mode=enums.ParseMode.HTML,
             )
         except Exception as e:
             _active.pop(uid, None)
             await temp.disconnect()
             return await step3.edit_text(
                 f"❌ <b>2FA Error:</b> <code>{e}</code>",
-                parse_mode="html",
+                parse_mode=enums.ParseMode.HTML,
             )
 
-        await step3.edit_text("✅ <b>2FA verified!</b>  Session save ho raha hai...", parse_mode="html")
+        await step3.edit_text("✅ <b>2FA verified!</b>  Session save ho raha hai...", parse_mode=enums.ParseMode.HTML)
 
     except PhoneCodeInvalid:
         _active.pop(uid, None)
         await temp.disconnect()
         return await step2.edit_text(
             "❌ <b>Wrong OTP!</b>  Dobara /setsession se try karo.",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
     except PhoneCodeExpired:
         _active.pop(uid, None)
         await temp.disconnect()
         return await step2.edit_text(
             "❌ <b>OTP expired!</b>  Dobara /setsession se try karo.",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
     except Exception as e:
         _active.pop(uid, None)
         await temp.disconnect()
         return await step2.edit_text(
             f"❌ <b>Sign-in Error:</b> <code>{e}</code>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     # ── Export & Save ───────────────────────────────────────────────────────────
@@ -253,7 +254,7 @@ async def cmd_setsession(client: Client, message: Message):
             "✅ <b>String Session save ho gayi!</b>\n\n"
             "Ab /wstart se scraping shuru kar sakte ho.\n\n"
             "<i>Session DB mein hai — dobara login ki zarurat nahi.</i>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     except Exception as e:
@@ -264,6 +265,6 @@ async def cmd_setsession(client: Client, message: Message):
             pass
         await message.reply_text(
             f"❌ <b>Session export error:</b> <code>{e}</code>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 

@@ -15,7 +15,6 @@ app = Client(
     bot_token=config.BOT_TOKEN,
     sleep_threshold=60,
     max_concurrent_transmissions=5,
-    plugins=dict(root="WAIFUSCRPER/tools"),
 )
 
 logger.info("ᴘʏʀᴏɢʀᴀᴍ ᴄʟɪᴇɴᴛ ɪɴɪᴛɪᴀʟɪᴢᴇᴅ ✅")

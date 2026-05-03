@@ -1,3 +1,4 @@
+from pyrogram import enums
 """
 WAIFUSCRPER — Sudo.py
 Commands:
@@ -55,20 +56,20 @@ async def addsudo_handler(client: Client, message: Message):
         return await message.reply_text(
             "❌ <b>ᴘʀᴏᴠɪᴅᴇ ᴀ ᴜsᴇʀ ɪᴅ ᴏʀ ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴜsᴇʀ.</b>\n\n"
             "ᴜsᴀɢᴇ: <code>/addsudo 123456789</code>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     if user_id == config.OWNER_ID:
         return await message.reply_text(
             "👑 <b>ᴏᴡɴᴇʀ ɪs ᴀʟʀᴇᴀᴅʏ ᴀᴛ ᴛʜᴇ ᴛᴏᴘ!</b>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     existing = await get_sudo_users()
     if user_id in existing:
         return await message.reply_text(
             f"⚠️ <code>{user_id}</code> <b>ɪs ᴀʟʀᴇᴀᴅʏ ᴀ sᴜᴅᴏ ᴜsᴇʀ.</b>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     await add_sudo(user_id)
@@ -76,7 +77,7 @@ async def addsudo_handler(client: Client, message: Message):
 
     await message.reply_text(
         f"✅ <code>{user_id}</code> <b>ʜᴀs ʙᴇᴇɴ ɢʀᴀɴᴛᴇᴅ sᴜᴅᴏ ᴀᴄᴄᴇss!</b>",
-        parse_mode="html",
+        parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -90,20 +91,20 @@ async def rmsudo_handler(client: Client, message: Message):
         return await message.reply_text(
             "❌ <b>ᴘʀᴏᴠɪᴅᴇ ᴀ ᴜsᴇʀ ɪᴅ ᴏʀ ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴜsᴇʀ.</b>\n\n"
             "ᴜsᴀɢᴇ: <code>/rmsudo 123456789</code>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     if user_id == config.OWNER_ID:
         return await message.reply_text(
             "😂 <b>ᴄᴀɴɴᴏᴛ ʀᴇᴍᴏᴠᴇ ᴛʜᴇ ᴏᴡɴᴇʀ!</b>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     existing = await get_sudo_users()
     if user_id not in existing:
         return await message.reply_text(
             f"⚠️ <code>{user_id}</code> <b>ɪs ɴᴏᴛ ɪɴ ᴛʜᴇ sᴜᴅᴏ ʟɪsᴛ.</b>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     await remove_sudo(user_id)
@@ -111,7 +112,7 @@ async def rmsudo_handler(client: Client, message: Message):
 
     await message.reply_text(
         f"✅ <code>{user_id}</code> <b>ʜᴀs ʙᴇᴇɴ ʀᴇᴍᴏᴠᴇᴅ ꜰʀᴏᴍ sᴜᴅᴏ!</b>",
-        parse_mode="html",
+        parse_mode=enums.ParseMode.HTML,
     )
 
 
@@ -124,7 +125,7 @@ async def sudolist_handler(client: Client, message: Message):
     if not sudo_users:
         return await message.reply_text(
             "📭 <b>ɴᴏ sᴜᴅᴏ ᴜsᴇʀs ꜰᴏᴜɴᴅ.</b>",
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
 
     lines = [
@@ -146,7 +147,7 @@ async def sudolist_handler(client: Client, message: Message):
 
     await message.reply_text(
         "\n".join(lines),
-        parse_mode="html",
+        parse_mode=enums.ParseMode.HTML,
         disable_web_page_preview=True,
     )
 

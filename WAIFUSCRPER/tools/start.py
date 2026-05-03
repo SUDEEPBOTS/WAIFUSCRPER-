@@ -1,3 +1,4 @@
+from pyrogram import enums
 """
 WAIFUSCRPER — tools/start.py
 Handles:
@@ -51,7 +52,7 @@ async def cmd_start(client: Client, message: Message):
         await message.reply_text(
             START_TEXT,
             reply_markup=_main_keyboard(),
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
         log.info(f"/start → {message.from_user.id}")
     except Exception as e:
@@ -65,7 +66,7 @@ async def cb_menu_home(client: Client, cq: CallbackQuery):
         await cq.message.edit_text(
             START_TEXT,
             reply_markup=_main_keyboard(),
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
     except Exception as e:
         log.error(f"menu_home error: {e}")
@@ -105,7 +106,7 @@ async def cb_menu_stats(client: Client, cq: CallbackQuery):
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("🏠 Home", callback_data="menu_home")],
             ]),
-            parse_mode="html",
+            parse_mode=enums.ParseMode.HTML,
         )
     except Exception as e:
         log.error(f"menu_stats error: {e}")
