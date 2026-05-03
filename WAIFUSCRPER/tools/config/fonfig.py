@@ -210,7 +210,7 @@ async def cb_cancel_input(client: Client, cq: CallbackQuery):
 
 @app.on_message(filters.private & filters.text & ~filters.command(
     ["start","help","config","wstart","wstop","addsudo","rmsudo","sudolist","setsession","cancel"]
-))
+), group=1)
 async def cfg_text_listener(client: Client, message: Message):
     uid   = message.from_user.id
     state = _awaiting.get(uid)
@@ -550,4 +550,4 @@ async def cb_toggle_autofetch(client: Client, cq: CallbackQuery):
             [InlineKeyboardButton("🏠 Home", callback_data="menu_home")],
         ]),
         parse_mode="html",
-  )
+                      )
