@@ -20,6 +20,8 @@ reg delete "HKLM\SOFTWARE\WOW6432Node\Mantra" /f
 
     rmdir /s /q "C:\Program Files\Mantra"
 
+    https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48
+
 
 
 
