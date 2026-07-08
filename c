@@ -15,3 +15,7 @@ rmdir /s /q "C:\ProgramData\MantraMIS100V2"
 
 reg delete "HKLM\SOFTWARE\Mantra" /f
 reg delete "HKLM\SOFTWARE\WOW6432Node\Mantra" /f
+
+
+
+    rmdir /s /q "C:\Program Files\Mantra"
