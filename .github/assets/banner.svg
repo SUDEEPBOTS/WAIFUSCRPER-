@@ -1,0 +1,197 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 320" width="100%" height="100%">
+  <defs>
+    <!-- Background Linear Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070a14"/>
+      <stop offset="50%" stop-color="#0f0e26"/>
+      <stop offset="100%" stop-color="#190d2e"/>
+    </linearGradient>
+
+    <!-- Neon Text Gradients -->
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff79c6"/>
+      <stop offset="35%" stop-color="#ff2a85"/>
+      <stop offset="70%" stop-color="#bd93f9"/>
+      <stop offset="100%" stop-color="#00f2fe"/>
+    </linearGradient>
+
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff2a85" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#7928ca" stop-opacity="0.15"/>
+    </linearGradient>
+
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00f2fe"/>
+      <stop offset="50%" stop-color="#9d4edd"/>
+      <stop offset="100%" stop-color="#ff2a85"/>
+    </linearGradient>
+
+    <!-- Neon Glow Filter -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur1"/>
+      <feGaussianBlur stdDeviation="16" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 15px rgba(255, 42, 133, 0.7)); }
+      50% { opacity: 1; filter: drop-shadow(0 0 25px rgba(0, 242, 254, 0.9)); }
+    }
+    @keyframes waveMove {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+      100% { transform: translateY(0); }
+    }
+    @keyframes barPulse {
+      0%, 100% { height: 12px; y: 260px; }
+      50% { height: 38px; y: 234px; }
+    }
+    @keyframes statusDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .main-title {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      font-weight: 900;
+      letter-spacing: 4px;
+      animation: pulseGlow 4s infinite ease-in-out;
+    }
+    .badge-text {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+    }
+    .desc-text {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13.5px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+    .status-indicator {
+      animation: statusDot 2s infinite ease-in-out;
+      transform-origin: 120px 45px;
+    }
+    .bar-1 { animation: barPulse 1.4s infinite ease-in-out; }
+    .bar-2 { animation: barPulse 1.8s infinite ease-in-out 0.2s; }
+    .bar-3 { animation: barPulse 1.2s infinite ease-in-out 0.4s; }
+    .bar-4 { animation: barPulse 1.6s infinite ease-in-out 0.1s; }
+    .bar-5 { animation: barPulse 2.0s infinite ease-in-out 0.5s; }
+    .bar-6 { animation: barPulse 1.5s infinite ease-in-out 0.3s; }
+    .bar-7 { animation: barPulse 1.9s infinite ease-in-out 0.6s; }
+  </style>
+
+  <!-- Background Canvas -->
+  <rect width="900" height="320" rx="20" fill="url(#bgGrad)"/>
+  <rect width="896" height="316" x="2" y="2" rx="18" fill="none" stroke="url(#accentGrad)" stroke-width="1.8" stroke-opacity="0.6"/>
+
+  <!-- Cyber Grid Background Pattern -->
+  <g opacity="0.08" stroke="#00f2fe" stroke-width="1">
+    <line x1="50" y1="0" x2="50" y2="320"/>
+    <line x1="150" y1="0" x2="150" y2="320"/>
+    <line x1="250" y1="0" x2="250" y2="320"/>
+    <line x1="350" y1="0" x2="350" y2="320"/>
+    <line x1="450" y1="0" x2="450" y2="320"/>
+    <line x1="550" y1="0" x2="550" y2="320"/>
+    <line x1="650" y1="0" x2="650" y2="320"/>
+    <line x1="750" y1="0" x2="750" y2="320"/>
+    <line x1="850" y1="0" x2="850" y2="320"/>
+    <line x1="0" y1="60" x2="900" y2="60"/>
+    <line x1="0" y1="120" x2="900" y2="120"/>
+    <line x1="0" y1="180" x2="900" y2="180"/>
+    <line x1="0" y1="240" x2="900" y2="240"/>
+  </g>
+
+  <!-- Top Status Pill -->
+  <g transform="translate(48, 32)">
+    <rect width="270" height="28" rx="14" fill="#000" fill-opacity="0.5" stroke="#ff2a85" stroke-width="1" stroke-opacity="0.6"/>
+    <circle cx="16" cy="14" r="5" fill="#00f2fe" class="status-indicator" filter="url(#softGlow)"/>
+    <text x="32" y="18" fill="#e0e7ff" class="badge-text">v1.4 • 100% OPERATIONAL</text>
+  </g>
+
+  <!-- Top Right Badges -->
+  <g transform="translate(560, 32)">
+    <rect width="290" height="28" rx="14" fill="#000" fill-opacity="0.5" stroke="#7928ca" stroke-width="1" stroke-opacity="0.6"/>
+    <text x="145" y="18" text-anchor="middle" fill="#bd93f9" class="badge-text">PYROGRAM 2.0 • MONGODB MOTOR</text>
+  </g>
+
+  <!-- Hero Header Title -->
+  <g transform="translate(450, 125)">
+    <!-- Glow Underlay -->
+    <text x="0" y="0" text-anchor="middle" font-size="44" fill="url(#titleGrad)" class="main-title" filter="url(#neonGlow)">
+      🌸 WAIFU ꭙ SCRPER
+    </text>
+    <!-- Sharp Foreground Text -->
+    <text x="0" y="0" text-anchor="middle" font-size="44" fill="url(#titleGrad)" class="main-title">
+      🌸 WAIFU ꭙ SCRPER
+    </text>
+  </g>
+
+  <!-- Subtitle -->
+  <text x="450" y="165" text-anchor="middle" fill="#a5b4fc" class="desc-text">
+    High-Performance Telegram Userbot Scraper, In-Flight Caption Regex AI &amp; Database Engine
+  </text>
+
+  <!-- Visual Stream Equalizer Bars (Representing real-time channel scraping) -->
+  <g fill="url(#accentGrad)" opacity="0.85">
+    <rect x="180" y="260" width="8" height="12" rx="4" class="bar-1"/>
+    <rect x="195" y="250" width="8" height="22" rx="4" class="bar-2"/>
+    <rect x="210" y="240" width="8" height="32" rx="4" class="bar-3"/>
+    <rect x="225" y="255" width="8" height="17" rx="4" class="bar-4"/>
+    <rect x="240" y="245" width="8" height="27" rx="4" class="bar-5"/>
+    <rect x="650" y="245" width="8" height="27" rx="4" class="bar-6"/>
+    <rect x="665" y="255" width="8" height="17" rx="4" class="bar-4"/>
+    <rect x="680" y="240" width="8" height="32" rx="4" class="bar-3"/>
+    <rect x="695" y="250" width="8" height="22" rx="4" class="bar-2"/>
+    <rect x="710" y="260" width="8" height="12" rx="4" class="bar-1"/>
+  </g>
+
+  <!-- Core Feature Pill Badges -->
+  <g transform="translate(130, 202)">
+    <!-- Badge 1: Userbot Streaming -->
+    <g transform="translate(0, 0)">
+      <rect width="145" height="30" rx="8" fill="url(#badgeGrad)" stroke="#ff2a85" stroke-width="1.2" stroke-opacity="0.8"/>
+      <text x="72" y="19" text-anchor="middle" fill="#fbcfe8" class="badge-text">⚡ AUTO / APPROVE</text>
+    </g>
+
+    <!-- Badge 2: Catbox & ImgBB -->
+    <g transform="translate(160, 0)">
+      <rect width="150" height="30" rx="8" fill="url(#badgeGrad)" stroke="#bd93f9" stroke-width="1.2" stroke-opacity="0.8"/>
+      <text x="75" y="19" text-anchor="middle" fill="#e9d5ff" class="badge-text">📦 CATBOX + IMGBB</text>
+    </g>
+
+    <!-- Badge 3: Smart Regex -->
+    <g transform="translate(325, 0)">
+      <rect width="150" height="30" rx="8" fill="url(#badgeGrad)" stroke="#00f2fe" stroke-width="1.2" stroke-opacity="0.8"/>
+      <text x="75" y="19" text-anchor="middle" fill="#cffafe" class="badge-text">🔮 CAPTION REGEX</text>
+    </g>
+
+    <!-- Badge 4: FloodWait Shield -->
+    <g transform="translate(490, 0)">
+      <rect width="150" height="30" rx="8" fill="url(#badgeGrad)" stroke="#10b981" stroke-width="1.2" stroke-opacity="0.8"/>
+      <text x="75" y="19" text-anchor="middle" fill="#a7f3d0" class="badge-text">🛡️ FLOOD SHIELD</text>
+    </g>
+  </g>
+
+  <!-- Bottom Accent Line -->
+  <line x1="80" y1="285" x2="820" y2="285" stroke="url(#accentGrad)" stroke-width="2" stroke-opacity="0.75" stroke-dasharray="8 4"/>
+
+  <!-- Footer Tagline -->
+  <text x="450" y="306" text-anchor="middle" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="10.5" letter-spacing="1.2px">
+    ✦ DEVELOPED BY TOXICXD43 &amp; SUDEEPBOTS • BUILT FOR ZERO DATA LOSS &amp; SCALABILITY ✦
+  </text>
+</svg>

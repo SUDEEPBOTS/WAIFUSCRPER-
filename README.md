@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./assets/banner.svg" alt="WAIFUSCRPER Banner" width="100%">
+<img src="https://raw.githubusercontent.com/SUDEEPBOTS/WAIFUSCRPER-/main/assets/banner.svg" alt="WAIFUSCRPER Banner" width="100%">
 
 <p align="center">
   <img src="https://readme-typing-svg.herokuapp.com/?lines=ENTERPRISE+TELEGRAM+WAIFU+SCRAPER;USERBOT+MTPROTO+STREAMING+%2B+CAPTION+AI;DUAL-HOST+CATBOX+%2B+IMGBB+IMAGE+RELAY;MOTOR+ASYNC+MONGODB+ZERO-DATA-LOSS+STORAGE;BUILT+BY+TOXICXD43+%26+SUDEEPBOTS&font=Fira+Code&weight=600&size=16&center=true&width=560&height=42&color=FF2A85" alt="Typing SVG" />
