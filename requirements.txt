@@ -3,7 +3,7 @@ pyrogram
 tgcrypto                  # Faster crypto for Pyrogram (must have)
 
 # ── Database ──────────────────────────────────────────────
-motor==3.3.2              # Async MongoDB driver
+motor==3.7.1              # Async MongoDB driver
 pymongo[srv]==4.6.1       # MongoDB (srv for Atlas connection strings)
 dnspython                 # Required for mongodb+srv:// URIs
 
