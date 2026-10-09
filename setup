@@ -1,1 +1,17 @@
+#!/usr/bin/env bash
+# --------------------------------------------------------------------------
+# Copyright (c) 2026 TOXICXD43 / SUDEEPBOTS. All Rights Reserved.
+# Licensed under the MIT License. See LICENSE in the project root for details.
+# --------------------------------------------------------------------------
 
+set -e
+echo "🌸 WAIFUSCRPER Environment Setup..."
+python3 -m venv venv || python3 -m virtualenv venv
+source venv/bin/activate
+pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+if [ ! -f .env ]; then
+    cp sample.env .env
+    echo "⚙️ Created .env from sample.env. Please configure your credentials!"
+fi
+echo "✅ Setup complete! Run with: bash start or python3 -m WAIFUSCRPER"

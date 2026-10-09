@@ -1,0 +1,30 @@
+# --------------------------------------------------------------------------
+# Copyright (c) 2026 TOXICXD43 / SUDEEPBOTS. All Rights Reserved.
+# Licensed under the MIT License. See LICENSE in the project root for details.
+# --------------------------------------------------------------------------
+
+version: '3.8'
+
+services:
+  waifuscrper:
+    build: .
+    container_name: waifuscrper_bot
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:6.0
+    container_name: waifuscrper_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

@@ -1,7 +1,12 @@
+# --------------------------------------------------------------------------
+# Copyright (c) 2026 TOXICXD43 / SUDEEPBOTS. All Rights Reserved.
+# Licensed under the MIT License. See LICENSE in the project root for details.
+# --------------------------------------------------------------------------
+
 import asyncio
 from pyrogram import Client
 import config
-from WAIFUSCRPER.Database.MongoDB import set_string_session
+from WAIFUSCRPER.Database import set_string_session
 
 async def inject_session():
     print("🚀 String Session Setup Started...")

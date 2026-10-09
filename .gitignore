@@ -1,18 +1,62 @@
-# Environments & Secrets
-.env
-venv/
-myenv/
-env/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Pyrogram Session Files
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+myenv/
+.venv/
+
+# Pyrogram & Telethon sessions and cache
 *.session
 *.session-journal
+*.session-shm
+*.session-wal
 
-# Logs
-logs/
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+sample.env.local
+
+# Logs and databases
 *.log
+logs/
+*.sqlite
+*.sqlite3
+dump.rdb
 
-# Python Cache
-__pycache__/
-*.pyc
-*.pyo
+# Editor & OS artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

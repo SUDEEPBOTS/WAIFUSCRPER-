@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WAIFU ꭙ SCRPER — Interactive Explorer &amp; Caption Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(15, 18, 28, 0.75);
+      --bg-glass: rgba(26, 31, 48, 0.5);
+      --border-glow: rgba(255, 42, 133, 0.35);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --neon-pink: #ff2a85;
+      --neon-cyan: #00f2fe;
+      --neon-purple: #9d4edd;
+      --neon-green: #10b981;
+      --neon-gold: #fbbf24;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-ui: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(255, 42, 133, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 85% 75%, rgba(0, 242, 254, 0.1) 0%, transparent 45%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 5rem;
+    }
+
+    /* Header & Nav */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-logo .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 0 20px rgba(255, 42, 133, 0.5);
+    }
+
+    .brand-logo h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      background: linear-gradient(90deg, #ff79c6, #00f2fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-badges {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .badge-pill {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+
+    .badge-pill:hover {
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+      transform: translateY(-2px);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--neon-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--neon-green);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* Hero Banner */
+    .hero {
+      text-align: center;
+      margin-bottom: 3.5rem;
+      position: relative;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 0.35rem 1rem;
+      border-radius: 9999px;
+      background: rgba(255, 42, 133, 0.12);
+      border: 1px solid rgba(255, 42, 133, 0.4);
+      color: var(--neon-pink);
+      margin-bottom: 1.25rem;
+    }
+
+    .hero h2 {
+      font-size: 3rem;
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+      letter-spacing: -0.5px;
+    }
+
+    .hero h2 span {
+      background: linear-gradient(135deg, #ff79c6 0%, #ff2a85 40%, #00f2fe 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto;
+      font-size: 1.15rem;
+    }
+
+    /* Tab Controls */
+    .tabs-nav {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 0.75rem 1.6rem;
+      border-radius: 12px;
+      font-family: var(--font-ui);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.25s ease;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--neon-pink);
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(255, 42, 133, 0.2), rgba(157, 78, 221, 0.15));
+      border-color: var(--neon-pink);
+      color: #fff;
+      box-shadow: 0 0 20px rgba(255, 42, 133, 0.25);
+    }
+
+    /* Tab Content Section */
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Studio Card */
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.75rem;
+    }
+
+    @media (max-width: 900px) {
+      .studio-grid { grid-template-columns: 1fr; }
+      .hero h2 { font-size: 2.2rem; }
+    }
+
+    .panel-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .panel-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .presets-bar {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .preset-chip {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: all 0.2s;
+    }
+
+    .preset-chip:hover {
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    textarea.caption-input {
+      width: 100%;
+      height: 220px;
+      background: rgba(8, 10, 16, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1rem;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      resize: vertical;
+      line-height: 1.5;
+      transition: border 0.2s;
+    }
+
+    textarea.caption-input:focus {
+      outline: none;
+      border-color: var(--neon-pink);
+      box-shadow: 0 0 15px rgba(255, 42, 133, 0.2);
+    }
+
+    /* Live Output Tokens */
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .token-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.75rem;
+    }
+
+    .token-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: var(--font-mono);
+      margin-bottom: 0.25rem;
+    }
+
+    .token-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .token-value.rarity-pill {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      background: rgba(255, 42, 133, 0.2);
+      border: 1px solid var(--neon-pink);
+      color: #ff79c6;
+    }
+
+    /* Code View */
+    .code-box {
+      background: rgba(5, 7, 12, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      height: 380px;
+      overflow: auto;
+      position: relative;
+    }
+
+    .btn-copy {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-copy:hover {
+      border-color: var(--neon-cyan);
+      color: #fff;
+    }
+
+    /* Waifu Gallery */
+    .gallery-filters {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 0.4rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: rgba(0, 242, 254, 0.15);
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    .search-box {
+      background: rgba(10, 14, 24, 0.8);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      padding: 0.45rem 1rem;
+      border-radius: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      outline: none;
+      width: 240px;
+    }
+
+    .search-box:focus {
+      border-color: var(--neon-pink);
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .waifu-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .waifu-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--border-glow);
+      box-shadow: 0 12px 30px rgba(255, 42, 133, 0.2);
+    }
+
+    .card-img-wrap {
+      width: 100%;
+      height: 240px;
+      background: #111422;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .waifu-card:hover .card-img-wrap img {
+      transform: scale(1.05);
+    }
+
+    .card-id-tag {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .card-rarity-tag {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .rarity-celestial { background: rgba(0, 242, 254, 0.2); border: 1px solid #00f2fe; color: #00f2fe; }
+    .rarity-mythic    { background: rgba(255, 42, 133, 0.2); border: 1px solid #ff2a85; color: #ff79c6; }
+    .rarity-legendary { background: rgba(251, 191, 36, 0.2); border: 1px solid #fbbf24; color: #fbbf24; }
+    .rarity-rare      { background: rgba(157, 78, 221, 0.2); border: 1px solid #9d4edd; color: #c084fc; }
+
+    .card-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-series {
+      font-size: 0.85rem;
+      color: var(--neon-cyan);
+      margin-bottom: 0.75rem;
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* Terminal Cheatsheet */
+    .cmd-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .cmd-table th, .cmd-table td {
+      padding: 0.85rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .cmd-table th {
+      background: rgba(255, 255, 255, 0.02);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--neon-cyan);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .cmd-badge {
+      font-family: var(--font-mono);
+      background: rgba(255, 42, 133, 0.15);
+      border: 1px solid rgba(255, 42, 133, 0.4);
+      color: #ff79c6;
+      padding: 0.25rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      display: inline-block;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: rgba(16, 185, 129, 0.95);
+      color: #000;
+      font-weight: 700;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <a href="#" class="brand-logo">
+        <div class="logo-icon">🌸</div>
+        <div>
+          <h1>WAIFU ꭙ SCRPER</h1>
+          <p style="font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono);">
+            PYROGRAM 2.0 • MONGODB MOTOR • CATBOX HOST
+          </p>
+        </div>
+      </a>
+      <div class="nav-badges">
+        <div class="badge-pill">
+          <span class="pulse-dot"></span>
+          <span>BOT STATUS: ACTIVE</span>
+        </div>
+        <a href="https://github.com/TOXICXD43/WAIFUSCRPER-" class="badge-pill" target="_blank">
+          <span>GITHUB REPO</span>
+        </a>
+        <a href="https://t.me/Zcziiy" class="badge-pill" target="_blank" style="color: var(--neon-pink); border-color: rgba(255,42,133,0.4);">
+          <span>OWNER: @Zcziiy</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-tag">ENTERPRISE TELEGRAM WAIFU SCRAPER</div>
+      <h2>Supercharge Your <span>Waifu Database</span></h2>
+      <p>
+        Automated Telegram channel scraper with userbot MTProto streaming, regex caption parsing, Catbox / ImgBB multi-hoster, and instant MongoDB Atlas sync.
+      </p>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('parser')">
+        <span>🔮</span> Live Caption Studio
+      </button>
+      <button class="tab-btn" onclick="switchTab('gallery')">
+        <span>🖼️</span> Scraped Gallery Preview
+      </button>
+      <button class="tab-btn" onclick="switchTab('commands')">
+        <span>⚡</span> Command Cheatsheet
+      </button>
+      <button class="tab-btn" onclick="switchTab('arch')">
+        <span>🔄</span> Pipeline Architecture
+      </button>
+    </div>
+
+    <!-- Tab 1: Live Caption Studio -->
+    <div id="tab-parser" class="tab-pane active">
+      <div class="studio-grid">
+        <!-- Input & Regex Tokens -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>📝</span> Telegram Message Caption
+            </div>
+          </div>
+          <div class="presets-bar">
+            <span style="font-size: 0.78rem; color: var(--text-muted); align-self: center;">Presets:</span>
+            <button class="preset-chip" onclick="loadPreset('jujutsu')">Jujutsu Kaisen</button>
+            <button class="preset-chip" onclick="loadPreset('demonslayer')">Demon Slayer</button>
+            <button class="preset-chip" onclick="loadPreset('sololeveling')">Solo Leveling</button>
+            <button class="preset-chip" onclick="loadPreset('genshin')">Genshin Impact</button>
+          </div>
+          <textarea id="captionInput" class="caption-input" placeholder="Paste any Telegram waifu caption here..."></textarea>
+
+          <div class="token-grid">
+            <div class="token-item">
+              <div class="token-label">Character Name</div>
+              <div id="outName" class="token-value">—</div>
+            </div>
+            <div class="token-item">
+              <div class="token-label">Waifu ID</div>
+              <div id="outId" class="token-value">—</div>
+            </div>
+            <div class="token-item">
+              <div class="token-label">Rarity Tier</div>
+              <div id="outRarityWrap"><span id="outRarity" class="token-value rarity-pill">—</span></div>
+            </div>
+            <div class="token-item">
+              <div class="token-label">Anime / Series</div>
+              <div id="outSeries" class="token-value">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MongoDB Document Preview -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>🍃</span> MongoDB BSON Schema Output
+            </div>
+            <button class="btn-copy" onclick="copyJson()">📋 Copy JSON</button>
+          </div>
+          <pre id="jsonPreview" class="code-box"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Scraped Gallery Preview -->
+    <div id="tab-gallery" class="tab-pane">
+      <div class="gallery-filters">
+        <div class="filter-pills">
+          <button class="filter-btn active" onclick="filterRarity('all', this)">All (6)</button>
+          <button class="filter-btn" onclick="filterRarity('Celestial', this)">Celestial</button>
+          <button class="filter-btn" onclick="filterRarity('Mythic', this)">Mythic</button>
+          <button class="filter-btn" onclick="filterRarity('Legendary', this)">Legendary</button>
+          <button class="filter-btn" onclick="filterRarity('Rare', this)">Rare</button>
+        </div>
+        <input type="text" id="gallerySearch" class="search-box" placeholder="🔍 Search waifu name..." oninput="searchGallery(this.value)">
+      </div>
+
+      <div class="cards-grid" id="cardsGrid">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- Tab 3: Command Cheatsheet -->
+    <div id="tab-commands" class="tab-pane">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title"><span>👑</span> Bot Command Reference</div>
+        </div>
+        <table class="cmd-table">
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Permission</th>
+              <th>Description</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="cmd-badge">/start</span></td>
+              <td>Everyone</td>
+              <td>Opens the interactive main menu with inline buttons.</td>
+              <td><code>/start</code></td>
+            </tr>
+            <tr>
+              <td><span class="cmd-badge">/wstart</span></td>
+              <td>Owner / Sudo</td>
+              <td>Initiates scraping on configured target channel.</td>
+              <td><code>/wstart</code></td>
+            </tr>
+            <tr>
+              <td><span class="cmd-badge">/wstop</span></td>
+              <td>Owner / Sudo</td>
+              <td>Safely terminates active scraping session.</td>
+              <td><code>/wstop</code></td>
+            </tr>
+            <tr>
+              <td><span class="cmd-badge">/config</span></td>
+              <td>Owner / Sudo</td>
+              <td>Interactive control panel for targets, logs, approve mode.</td>
+              <td><code>/config</code></td>
+            </tr>
+            <tr>
+              <td><span class="cmd-badge">/setsession</span></td>
+              <td>Owner</td>
+              <td>Generates Pyrogram string session directly in chat.</td>
+              <td><code>/setsession</code></td>
+            </tr>
+            <tr>
+              <td><span class="cmd-badge">/addsudo</span></td>
+              <td>Owner</td>
+              <td>Grants sudo scraper control to a specific user ID.</td>
+              <td><code>/addsudo 123456789</code></td>
+            </tr>
+            <tr>
+              <td><span class="cmd-badge">/sudolist</span></td>
+              <td>Owner / Sudo</td>
+              <td>Displays current active sudo users list from MongoDB.</td>
+              <td><code>/sudolist</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 4: Pipeline Architecture -->
+    <div id="tab-arch" class="tab-pane">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title"><span>🔄</span> Real-Time Scraping Data Flow</div>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.88rem; background: rgba(5,7,12,0.8); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-subtle); line-height: 1.8;">
+          <p style="color: var(--neon-cyan);">[1] Telegram Channel</p>
+          <p style="color: var(--text-muted);">&nbsp;&nbsp;&nbsp;&nbsp;└── MTProto Userbot Client (get_chat_history stream)</p>
+          <br>
+          <p style="color: var(--neon-pink);">[2] Caption Normalization &amp; Tokenizer</p>
+          <p style="color: var(--text-muted);">&nbsp;&nbsp;&nbsp;&nbsp;├── Unicode NFKD normalization (replaces stylized unicode)</p>
+          <p style="color: var(--text-muted);">&nbsp;&nbsp;&nbsp;&nbsp;├── Regex match: ID + Name, Rarity keyword, Added By tag</p>
+          <p style="color: var(--text-muted);">&nbsp;&nbsp;&nbsp;&nbsp;└── Sequential ID generation if unassigned in caption</p>
+          <br>
+          <p style="color: var(--neon-purple);">[3] Multi-Hoster Image Relay</p>
+          <p style="color: var(--text-muted);">&nbsp;&nbsp;&nbsp;&nbsp;├── Download telegram photo in-memory buffer</p>
+          <p style="color: var(--text-muted);">&nbsp;&nbsp;&nbsp;&nbsp;├── Primary: Catbox.moe (3 retries with 30s timeout)</p>
+          <p style="color: var(--text-muted);">&nbsp;&nbsp;&nbsp;&nbsp;└── Fallback: ImgBB API (base64 multipart)</p>
+          <br>
+          <p style="color: var(--neon-green);">[4] MongoDB Motor Atomic Storage</p>
+          <p style="color: var(--text-muted);">&nbsp;&nbsp;&nbsp;&nbsp;├── Duplicate check via waifu_exists(waifu_id)</p>
+          <p style="color: var(--text-muted);">&nbsp;&nbsp;&nbsp;&nbsp;└── Insert structured BSON doc with UTC timestamp</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>
+        🌸 <b>WAIFUSCRPER</b> — Developed by <b>TOXICXD43</b> &amp; <b>SUDEEPBOTS</b> • MIT Licensed.
+      </p>
+      <p style="font-size: 0.78rem; margin-top: 0.5rem; font-family: var(--font-mono);">
+        Optimized for zero-downtime Telegram channel scraping and YUKIWAFUS database feeding.
+      </p>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast">Copied to clipboard! ✅</div>
+
+  <script>
+    // Presets
+    const presets = {
+      jujutsu: `🌸 UwU check out this new character!\n\nJujutsu Kaisen\n3793: Nobara Kugisaki\nRarity: Celestial\n\nAdded by: Gun Park`,
+      demonslayer: `✨ A rare gem appeared in the collection!\n\nDemon Slayer: Kimetsu no Yaiba\n1042: Nezuko Kamado\nRarity: Mythic\n\nᴀᴅᴅᴇᴅ ʙʏ: Tanjiro`,
+      sololeveling: `👒 Solo Leveling\n582: Cha Hae-In\nRarity - Legendary`,
+      genshin: `🎐 Genshin Impact\n1984: Raiden Shogun\nRarity: Celestial\nAdded by: Traveler`
+    };
+
+    const sampleGallery = [
+      { id: "3793", name: "Nobara Kugisaki", series: "Jujutsu Kaisen", rarity: "Celestial", img: "https://files.catbox.moe/sjm5sv.jpg", addedBy: "Gun Park" },
+      { id: "1042", name: "Nezuko Kamado", series: "Demon Slayer", rarity: "Mythic", img: "https://files.catbox.moe/sjm5sv.jpg", addedBy: "Tanjiro" },
+      { id: "582", name: "Cha Hae-In", series: "Solo Leveling", rarity: "Legendary", img: "https://files.catbox.moe/sjm5sv.jpg", addedBy: "Admin" },
+      { id: "1984", name: "Raiden Shogun", series: "Genshin Impact", rarity: "Celestial", img: "https://files.catbox.moe/sjm5sv.jpg", addedBy: "Traveler" },
+      { id: "2104", name: "Makima", series: "Chainsaw Man", rarity: "Mythic", img: "https://files.catbox.moe/sjm5sv.jpg", addedBy: "Denji" },
+      { id: "889", name: "Marin Kitagawa", series: "My Dress-Up Darling", rarity: "Rare", img: "https://files.catbox.moe/sjm5sv.jpg", addedBy: "Gojo" }
+    ];
+
+    const input = document.getElementById('captionInput');
+    const outName = document.getElementById('outName');
+    const outId = document.getElementById('outId');
+    const outRarity = document.getElementById('outRarity');
+    const outSeries = document.getElementById('outSeries');
+    const jsonPreview = document.getElementById('jsonPreview');
+
+    function normalize(text) {
+      return text.normalize("NFKD");
+    }
+
+    function parseCaption(caption) {
+      if (!caption) return null;
+      const text = normalize(caption);
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+      const result = {
+        name: null,
+        waifu_id: null,
+        rarity: null,
+        series: null,
+        added_by: "unknown"
+      };
+
+      for (let line of lines) {
+        const idName = line.match(/^(\d+)\s*:\s*(.+)$/);
+        if (idName) {
+          result.waifu_id = idName[1].trim();
+          result.name = idName[2].trim();
+          continue;
+        }
+
+        const rarityMatch = line.match(/[Rr]arity\s*[:\-]\s*(.+)/);
+        if (rarityMatch) {
+          result.rarity = rarityMatch[1].trim();
+          continue;
+        }
+
+        const addedMatch = line.match(/(?:added\s+by|ᴀᴅᴅᴇᴅ\s+ʙʏ)\s*[:\-]\s*(.+)/i);
+        if (addedMatch) {
+          result.added_by = addedMatch[1].trim();
+          continue;
+        }
+      }
+
+      const skipPatterns = [
+        /^\d+\s*:/,
+        /[Rr]arity/i,
+        /(?:added\s+by|ᴀᴅᴅᴇᴅ\s+ʙʏ)/i,
+        /^UwU/i,
+        /^[💉🎐👒🌸✨🎴🎆]+/
+      ];
+
+      for (let line of lines) {
+        const isSkip = skipPatterns.some(p => p.test(line));
+        if (!isSkip && result.series === null && !line.match(/^\d+\s*:/)) {
+          result.series = line;
+          break;
+        }
+      }
+
+      if (!result.name) {
+        for (let line of lines) {
+          if (!skipPatterns.some(p => p.test(line)) && line !== result.series) {
+            result.name = line;
+            break;
+          }
+        }
+      }
+
+      return result;
+    }
+
+    function updateStudio() {
+      const val = input.value;
+      const parsed = parseCaption(val);
+
+      if (!parsed || !parsed.name) {
+        outName.textContent = "—";
+        outId.textContent = "—";
+        outRarity.textContent = "—";
+        outSeries.textContent = "—";
+        jsonPreview.textContent = "// Paste a valid caption on the left to see generated MongoDB document...";
+        return;
+      }
+
+      outName.textContent = parsed.name || "—";
+      outId.textContent = parsed.waifu_id || "(Auto +1)";
+      outRarity.textContent = parsed.rarity || "Standard";
+      outSeries.textContent = parsed.series || "Unknown Series";
+
+      const doc = {
+        "name": parsed.name,
+        "img_url": "https://files.catbox.moe/sjm5sv.jpg",
+        "rarity": parsed.rarity || "unknown",
+        "series": parsed.series || "unknown",
+        "event_tag": "standard",
+        "source_message_id": 48291,
+        "added_by": parsed.added_by || "unknown",
+        "id": parsed.waifu_id || "5779",
+        "waifu_id": parsed.waifu_id || "5779",
+        "Date": new Date().toLocaleDateString('en-GB')
+      };
+
+      jsonPreview.textContent = JSON.stringify(doc, null, 2);
+    }
+
+    input.addEventListener('input', updateStudio);
+
+    function loadPreset(key) {
+      input.value = presets[key];
+      updateStudio();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+      document.getElementById('tab-' + tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    function renderGallery(items) {
+      const grid = document.getElementById('cardsGrid');
+      grid.innerHTML = items.map(item => `
+        <div class="waifu-card">
+          <div class="card-img-wrap">
+            <span class="card-id-tag">#${item.id}</span>
+            <span class="card-rarity-tag rarity-${item.rarity.toLowerCase()}">${item.rarity}</span>
+            <img src="${item.img}" alt="${item.name}">
+          </div>
+          <div class="card-body">
+            <div class="card-title">${item.name}</div>
+            <div class="card-series">${item.series}</div>
+            <div class="card-meta">
+              <span>Added: ${item.addedBy}</span>
+              <span>Catbox Hosted</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterRarity(rarity, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (rarity === 'all') {
+        renderGallery(sampleGallery);
+      } else {
+        renderGallery(sampleGallery.filter(w => w.rarity.toLowerCase() === rarity.toLowerCase()));
+      }
+    }
+
+    function searchGallery(query) {
+      const q = query.toLowerCase();
+      renderGallery(sampleGallery.filter(w => 
+        w.name.toLowerCase().includes(q) || w.series.toLowerCase().includes(q)
+      ));
+    }
+
+    function copyJson() {
+      navigator.clipboard.writeText(jsonPreview.textContent);
+      showToast("MongoDB JSON Copied! 📋");
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // Init
+    loadPreset('jujutsu');
+    renderGallery(sampleGallery);
+  </script>
+</body>
+</html>
