@@ -23,5 +23,5 @@ Pillow==10.3.0            # Image handling if needed later
 loguru==0.7.2             # Better logging
 humanize==4.9.0           # Human readable numbers/dates
 python-dateutil==2.9.0    # Date parsing
-pytz==2024.1              # Timezone support
+pytz==2026.5              # Timezone support
 
